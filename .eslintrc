@@ -1,0 +1,51 @@
+{
+  "root": true,
+  "env": {
+    "browser": true,
+    "node": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "tsconfig.json",
+		"tsconfigRootDir": "."
+  },
+  "extends": [
+    "airbnb-base",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking"
+  ],
+  "plugins": [
+    "@typescript-eslint"
+  ],
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [".js", ".jsx", ".ts", ".tsx"]
+      }
+    }
+  },
+  "rules": {
+    "semi": ["error", "never"],
+    "linebreak-style": "off",
+    "comma-dangle": "off",
+    "no-confusing-arrow": "off",
+    "arrow-parens": "off",
+    "space-before-function-paren": ["error", "always"],
+    "max-statements": [2, 16],
+    "max-depth": [2, 5],
+    "complexity": [2, 7],
+    "max-len": [2, 100],
+    "max-params": [2, 3],
+    "max-nested-callbacks": [2, 1],
+    "consistent-this": "error",
+    "no-extra-bind": "error",
+    "import/extensions": "off",
+    "no-plusplus": "off",
+    "no-underscore-dangle": "warn",
+    "no-param-reassign": "warn",
+    "import/no-extraneous-dependencies": "off",
+    "no-bitwise": "off",
+    "prefer-destructuring": ["error", {"object": true, "array": false}],
+    "import/prefer-default-export": "off"
+  }
+}
