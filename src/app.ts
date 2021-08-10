@@ -1,7 +1,6 @@
 import { CDNServer, CDNResponse } from './server'
 
 function serverHandler (route: string): Promise<CDNResponse> {
-  console.log(route)
   return new Promise(resolve => {
     resolve({
       code: 200,
@@ -11,6 +10,10 @@ function serverHandler (route: string): Promise<CDNResponse> {
 }
 
 const server = new CDNServer({ handler: serverHandler })
+
+server.on('error', (err) => {
+  console.log('Server error')
+})
 
 server.start()
   .then(() => {
