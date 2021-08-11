@@ -36,7 +36,7 @@
     "complexity": [2, 7],
     "max-len": [2, 100],
     "max-params": [2, 3],
-    "max-nested-callbacks": [2, 1],
+    "max-nested-callbacks": [2, 3],
     "consistent-this": "error",
     "no-extra-bind": "error",
     "import/extensions": "off",

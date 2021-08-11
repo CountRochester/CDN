@@ -42,27 +42,31 @@ interface logRequestInterface {
   err?: Error
 }
 
-function defaultErrorHandler (err: ServerError, res: ServerResponse): void {
+export function defaultErrorHandler (err: ServerError, res: ServerResponse): void {
   res.writeHead(err.code, {
     'Content-Type': 'application/json'
   })
   res.end(JSON.stringify(err))
 }
 
-function sendResponse (res: ServerResponse, response: CDNResponse) {
-  res.setHeader('Content-Type', 'text/plain')
-  res.writeHead(response.code)
+export function sendResponse (res: ServerResponse, response: CDNResponse): void {
+  res.writeHead(response.code, {
+    'Content-Type': 'text/plain'
+  })
   res.end(response.payload)
 }
 
-function getRequestDetail (req: IncomingMessage): RequestDetailStrict {
+export function getRequestDetail (req: IncomingMessage): RequestDetailStrict {
   const detail = {
     method: req.method?.toLowerCase() || 'get',
     path: req.url || '/'
   }
 
   if (detail.method !== 'get') {
-    throw new Error('Method not alowed')
+    ServerError.createAndThrow({
+      code: 403,
+      message: 'Method not alowed'
+    })
   }
   return detail
 }
@@ -70,7 +74,7 @@ function getRequestDetail (req: IncomingMessage): RequestDetailStrict {
 const GOOD_LOG_COLOR = '\x1b[32m%s\x1b[0m'
 const BAD_LOG_COLOR = '\x1b[31m%s\x1b[0m'
 
-function logRequest ({
+export function logRequest ({
   t1, t2, reqDetail, err
 }: logRequestInterface):void {
   const time = t2 - t1
