@@ -35,13 +35,13 @@ jobs:
       - name: Run tests
         run: npm run test.coverage
         
-      # Removes dev dependences
-      - name: Removes dev dependences
-        run: npm uninstall @types/jest @types/node @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint eslint-config-airbnb-base eslint-plugin-import jest ts-jest typescript
-
       # Builds the bundle
       - name: Build
         run: npm run build
+        
+      # Removes dev dependences
+      - name: Removes dev dependences
+        run: npm uninstall @types/jest @types/node @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint eslint-config-airbnb-base eslint-plugin-import jest ts-jest typescript
         
       # Archive production artifacts
       - name: Archive production artifacts
