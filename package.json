@@ -5,6 +5,7 @@
   "main": "bundle/src/server/index.js",
   "scripts": {
     "test": "jest",
+    "test.coverage": "jest --coverage",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "build": "tsc --build --clean && tsc --build",
     "start": "node bundle/src/app.js"
