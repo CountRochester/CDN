@@ -38,3 +38,17 @@ jobs:
       # Builds the bundle
       - name: Build
         run: npm run build
+        
+      # Archive production artifacts
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: bundle
+          path: bundle
+          
+      # Archive code coverage results
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v2
+        with:
+          name: code-coverage-report
+          path: output/test/code-coverage.html
