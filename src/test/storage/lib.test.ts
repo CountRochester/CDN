@@ -1,7 +1,16 @@
 import { join, sep } from 'path'
 import { getFilesPath } from '../../storage/lib'
+import { clearMockFiles, mockFiles } from '../test-utils/mock-files'
 
 describe('getFilesPath test case', () => {
+  beforeEach(() => {
+    mockFiles()
+  })
+
+  afterEach(() => {
+    clearMockFiles()
+  })
+
   test('Should read path of all nested files', async () => {
     const testPath = 'data'
 

@@ -3,8 +3,17 @@
 import { performance } from 'perf_hooks'
 import { promises } from 'fs'
 import { Storage } from '../../storage'
+import { clearMockFiles, mockFiles } from '../test-utils/mock-files'
 
 describe('Storage test case', () => {
+  beforeEach(() => {
+    mockFiles()
+  })
+
+  afterEach(() => {
+    clearMockFiles()
+  })
+
   describe('Init test case', () => {
     test('Should init the storage propertly', async () => {
       const t10 = performance.now()
