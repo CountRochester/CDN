@@ -6,7 +6,8 @@ import { getFilesPath, formFileObj } from './lib'
 
 export interface StorageConfig {
   rootPath?: string
-  size?: number
+  size?: number,
+  sharedBuffer?: SharedArrayBuffer
 }
 
 interface FileMap {
@@ -29,6 +30,8 @@ const ERROR_FILE_NOT_FOUND: Error = new Error('The file not found')
 export class Storage {
   rootPath: string
 
+  sharedBuffer: SharedArrayBuffer
+
   buffer: Buffer
 
   fileTable: Map<string, FileMap>
@@ -42,7 +45,8 @@ export class Storage {
   constructor (config?: StorageConfig) {
     this.rootPath = config?.rootPath || DEFAULT_STORAGE_PATH
     this.capacity = config?.size || DEFAULT_BUFFER_SIZE
-    this.buffer = Buffer.alloc(this.capacity)
+    this.sharedBuffer = config?.sharedBuffer || new SharedArrayBuffer(this.capacity)
+    this.buffer = Buffer.from(this.sharedBuffer)
     this.fileTable = new Map()
     this.currentSize = 0
     this.isBusy = false
@@ -78,7 +82,7 @@ export class Storage {
     if (!keyObj) {
       throw new Error('File not found')
     }
-    const file = this.buffer.slice(keyObj.start, keyObj.end)
+    const file = this.buffer.slice(keyObj.start, keyObj.end) /* Atomics.load(this.buffer, ) */
     return file
   }
 
