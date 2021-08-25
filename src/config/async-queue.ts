@@ -1,0 +1,1 @@
+export const GRACEFULL_TIMEOUT = 5000

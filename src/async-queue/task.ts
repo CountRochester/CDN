@@ -12,7 +12,7 @@ export interface TaskOptions {
 export class Task extends EventEmitter {
   id: string
 
-  handler: TaskFunction
+  handler?: TaskFunction
 
   status: string
 
@@ -27,14 +27,16 @@ export class Task extends EventEmitter {
     this.errors = []
   }
 
-  async execute (...args: any): Promise<void> {
+  async execute (...args: any[]): Promise<void> {
     try {
       if (this.status !== 'ready') {
         throw new Error(`Invalid task status: ${this.status}`)
       }
       this.emit('beforeExecute', this.id)
       this.status = 'started'
-      await this.handler(...args)
+      if (this.handler) {
+        await this.handler(...args)
+      }
       this.status = 'done'
       this.emit('afterExecute', this.id)
     } catch (err) {
@@ -49,5 +51,14 @@ export class Task extends EventEmitter {
   reset (): void {
     this.status = 'ready'
     this.errors = []
+  }
+
+  destroy (): void {
+    this.errors = []
+    this.status = 'destroyed'
+    this.handler = undefined;
+
+    ['created', 'beforeExecute', 'afterExecute', 'error']
+      .map(event => this.removeAllListeners(event))
   }
 }
