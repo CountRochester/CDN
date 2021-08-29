@@ -1,3 +1,4 @@
+/* eslint-disable max-statements */
 import { EventEmitter } from 'events'
 import { Task } from '../../async-queue/task'
 
@@ -71,5 +72,29 @@ describe('Task test case', () => {
     task.reset()
     expect(task.status).toBe('ready')
     expect(task.errors).toEqual([])
+  })
+
+  test('should successfully destroyed', async () => {
+    const testError = new Error('test')
+    const handler = jest.fn(() => Promise.reject(testError))
+    const task = new Task({ handler })
+    let before
+    let after
+    let err
+    task.on('beforeExecute', (id: string) => { before = id })
+    task.on('afterExecute', (id: string) => { after = id })
+    task.on('error', (error: Error) => { err = error })
+    await task.execute('arg1', 'arg2')
+    const firstErr = err
+    task.destroy()
+    expect(task.errors).toEqual([])
+    expect(task.status).toBe('destroyed')
+    expect(task.handler).toBeUndefined()
+    try {
+      await task.execute()
+    } catch (error) {
+      expect(error.constructor.name).toBe('NodeError')
+      expect(err).toBe(firstErr)
+    }
   })
 })

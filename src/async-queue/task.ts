@@ -16,6 +16,8 @@ export class Task extends EventEmitter {
 
   status: string
 
+  #events: Array<string|symbol>
+
   errors: Error[]
 
   constructor (options: TaskOptions) {
@@ -25,6 +27,14 @@ export class Task extends EventEmitter {
     this.handler = options.handler
     this.emit('created', this.id)
     this.errors = []
+    this.#events = ['created', 'beforeExecute', 'afterExecute', 'error']
+  }
+
+  on (event: string|symbol, listener: (...args: any[]) => void):this {
+    if (!this.#events.includes(event)) {
+      throw new Error('Invalid event')
+    }
+    return super.on(event, listener)
   }
 
   async execute (...args: any[]): Promise<void> {
@@ -56,9 +66,7 @@ export class Task extends EventEmitter {
   destroy (): void {
     this.errors = []
     this.status = 'destroyed'
-    this.handler = undefined;
-
-    ['created', 'beforeExecute', 'afterExecute', 'error']
-      .map(event => this.removeAllListeners(event))
+    delete this.handler
+    this.#events.map(event => this.removeAllListeners(event))
   }
 }
