@@ -116,8 +116,10 @@ export class AsyncQueue extends EventEmitter {
       }
       this.currentTask = this.queue.pop()
       this.emit('next', this.currentTask?.id)
-      await this.currentTask?.execute(...args)
-      this.emit('complete', this.currentTask?.id)
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const result = await this.currentTask?.execute(...args)
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      this.emit('complete', { taskId: this.currentTask?.id, result })
       this.currentTask = undefined
       if (this.isEmpty && this.#status !== 'destroyed') {
         this.#status = 'ready'
