@@ -1,5 +1,5 @@
 import { promises } from 'fs'
-import { join } from 'path'
+import { join, relative, sep } from 'path'
 
 interface FileStat {
   path: string
@@ -11,17 +11,25 @@ interface FileObjectInputInterface {
   path: string
 }
 
-interface FileObjectOutputInterface {
-  key: string
-  path: string
+interface FileObjectOutputInterface extends FileObjectInputInterface {
   file: Buffer
 }
 
+const ERROR_STORAGE_FULL = (): Error => new Error('The storage is full')
+
+/**
+ * Returns true if the input string is a dirrectory
+ * @param path - path of the file or dirrectory
+ */
 async function isDir (path: string): Promise<boolean> {
   const stats = await promises.lstat(path)
   return stats.isDirectory()
 }
 
+/**
+ * Returns the stats of the path (path with prop isDir)
+ * @param path - path of the file or dirrectory
+ */
 async function getFileStat (path: string): Promise<FileStat> {
   const isDirrectory = await isDir(path)
   return {
@@ -30,6 +38,11 @@ async function getFileStat (path: string): Promise<FileStat> {
   }
 }
 
+/**
+ * Recursively reads the path and returns the array of files
+ * @param root - root path
+ * @returns array of files inside the root
+ */
 export async function getFilesPath (root: string): Promise<Array<string>> {
   const filesPath: Array<string> = []
   const fileNames: Array<string> = await promises.readdir(root)
@@ -43,6 +56,12 @@ export async function getFilesPath (root: string): Promise<Array<string>> {
   return filesPath
 }
 
+/**
+ * Forms the file object, contains the key (the relative path of the file),
+ * the absolute path of the file and content of the file
+ * @param options.key - the relative path of the file
+ * @param options.path - the absolute path of the file
+ */
 export async function formFileObj ({
   key, path
 }: FileObjectInputInterface): Promise<FileObjectOutputInterface> {
@@ -52,4 +71,19 @@ export async function formFileObj ({
     path,
     file,
   }
+}
+
+/**
+ * Reads the content of input dirrectory
+ * @param root - root path for reading files
+ * @returns Array of the files with absolute and relative paths
+ */
+export async function readFilesFromPath (root: string): Promise<Array<FileObjectOutputInterface>> {
+  const paths = await getFilesPath(root)
+  const keysObj = paths
+    .map(el => relative(root, el))
+    .map(el => el.split(sep).join('/'))
+    .map((el, index) => ({ key: el, path: paths[index] }))
+  const output = await Promise.all(keysObj.map(formFileObj))
+  return output
 }

@@ -15,7 +15,7 @@ describe('constructor test case', () => {
       timeoutBeforeDestroy: 100
     }
 
-    const queue = new AsyncQueue(options)
+    const queue = new AsyncQueue<Buffer>(options)
 
     expect(queue.queue).toEqual([])
     expect(queue.timeout).toBe(options.timeout)
@@ -30,7 +30,7 @@ describe('constructor test case', () => {
 })
 
 describe('add test case', () => {
-  let queue: AsyncQueue
+  let queue: AsyncQueue<Buffer>
   beforeEach(() => {
     const options = {
       timeout: 1000,
@@ -45,9 +45,9 @@ describe('add test case', () => {
     const handlerSpy1 = jest.fn((): Promise<void> => Promise.resolve())
     const handlerSpy2 = jest.fn((): Promise<void> => Promise.resolve())
     const handlerSpy3 = jest.fn((): Promise<void> => Promise.resolve())
-    const task1 = new Task({ handler: handlerSpy1 })
-    const task2 = new Task({ handler: handlerSpy2 })
-    const task3 = new Task({ handler: handlerSpy3 })
+    const task1 = new Task<Buffer>({ handler: handlerSpy1 })
+    const task2 = new Task<Buffer>({ handler: handlerSpy2 })
+    const task3 = new Task<Buffer>({ handler: handlerSpy3 })
     await Promise.all([
       queue.add(task1),
       queue.add(task2),
@@ -73,12 +73,12 @@ describe('add test case', () => {
     const handlerSpy1 = jest.fn((): Promise<void> => Promise.resolve())
     const handlerSpy2 = jest.fn((): Promise<void> => Promise.resolve())
     const handlerSpy3 = jest.fn((): Promise<void> => Promise.resolve())
-    const task1 = new Task({ handler: handlerSpy1 })
-    const task2 = new Task({ handler: handlerSpy2 })
-    const task3 = new Task({ handler: handlerSpy3 })
-    const task4 = new Task({ handler: handlerSpy1 })
-    const task5 = new Task({ handler: handlerSpy2 })
-    const task6 = new Task({ handler: handlerSpy3 })
+    const task1 = new Task<Buffer>({ handler: handlerSpy1 })
+    const task2 = new Task<Buffer>({ handler: handlerSpy2 })
+    const task3 = new Task<Buffer>({ handler: handlerSpy3 })
+    const task4 = new Task<Buffer>({ handler: handlerSpy1 })
+    const task5 = new Task<Buffer>({ handler: handlerSpy2 })
+    const task6 = new Task<Buffer>({ handler: handlerSpy3 })
     const fullHandler = jest.fn()
 
     queue.on('full', fullHandler)
@@ -101,12 +101,12 @@ describe('add test case', () => {
     const handlerSpy1 = jest.fn((): Promise<void> => Promise.resolve())
     const handlerSpy2 = jest.fn((): Promise<void> => Promise.resolve())
     const handlerSpy3 = jest.fn((): Promise<void> => Promise.resolve())
-    const task1 = new Task({ handler: handlerSpy1 })
-    const task2 = new Task({ handler: handlerSpy2 })
-    const task3 = new Task({ handler: handlerSpy3 })
-    const task4 = new Task({ handler: handlerSpy1 })
-    const task5 = new Task({ handler: handlerSpy2 })
-    const task6 = new Task({ handler: handlerSpy3 })
+    const task1 = new Task<Buffer>({ handler: handlerSpy1 })
+    const task2 = new Task<Buffer>({ handler: handlerSpy2 })
+    const task3 = new Task<Buffer>({ handler: handlerSpy3 })
+    const task4 = new Task<Buffer>({ handler: handlerSpy1 })
+    const task5 = new Task<Buffer>({ handler: handlerSpy2 })
+    const task6 = new Task<Buffer>({ handler: handlerSpy3 })
     const fullHandler = jest.fn()
 
     queue.on('full', fullHandler)
@@ -125,7 +125,7 @@ describe('add test case', () => {
 })
 
 describe('next test case', () => {
-  let queue: AsyncQueue
+  let queue: AsyncQueue<Buffer>
   beforeEach(() => {
     const options = {
       timeout: 1000,
@@ -143,11 +143,11 @@ describe('next test case', () => {
     const handlerSpy3 = jest.fn((): Promise<void> => Promise.resolve())
     const handlerSpy4 = jest.fn((): Promise<void> => Promise.resolve())
     const handlerSpy5 = jest.fn((): Promise<void> => Promise.resolve())
-    const task1 = new Task({ handler: handlerSpy1 })
-    const task2 = new Task({ handler: handlerSpy2 })
-    const task3 = new Task({ handler: handlerSpy3 })
-    const task4 = new Task({ handler: handlerSpy4 })
-    const task5 = new Task({ handler: handlerSpy5 })
+    const task1 = new Task<Buffer>({ handler: handlerSpy1 })
+    const task2 = new Task<Buffer>({ handler: handlerSpy2 })
+    const task3 = new Task<Buffer>({ handler: handlerSpy3 })
+    const task4 = new Task<Buffer>({ handler: handlerSpy4 })
+    const task5 = new Task<Buffer>({ handler: handlerSpy5 })
     const fullHandler = jest.fn()
     const emptyHandler = jest.fn()
     const nextHandler = jest.fn()
@@ -196,11 +196,11 @@ describe('next test case', () => {
     const handlerSpy3 = jest.fn((): Promise<void> => Promise.resolve())
     const handlerSpy4 = jest.fn((): Promise<void> => Promise.resolve())
     const handlerSpy5 = jest.fn((): Promise<void> => Promise.resolve())
-    const task1 = new Task({ handler: handlerSpy1 })
-    const task2 = new Task({ handler: handlerSpy2 })
-    const task3 = new Task({ handler: handlerSpy3 })
-    const task4 = new Task({ handler: handlerSpy4 })
-    const task5 = new Task({ handler: handlerSpy5 })
+    const task1 = new Task<Buffer>({ handler: handlerSpy1 })
+    const task2 = new Task<Buffer>({ handler: handlerSpy2 })
+    const task3 = new Task<Buffer>({ handler: handlerSpy3 })
+    const task4 = new Task<Buffer>({ handler: handlerSpy4 })
+    const task5 = new Task<Buffer>({ handler: handlerSpy5 })
     const fullHandler = jest.fn()
     const emptyHandler = jest.fn()
     const nextHandler = jest.fn()
@@ -243,7 +243,7 @@ describe('next test case', () => {
 })
 
 describe('start test case', () => {
-  let queue: AsyncQueue
+  let queue: AsyncQueue<Buffer>
   beforeEach(() => {
     const options = {
       timeout: 1000,
@@ -261,11 +261,11 @@ describe('start test case', () => {
     const handlerSpy3 = jest.fn((): Promise<void> => Promise.resolve())
     const handlerSpy4 = jest.fn((): Promise<void> => Promise.resolve())
     const handlerSpy5 = jest.fn((): Promise<void> => Promise.resolve())
-    const task1 = new Task({ handler: handlerSpy1 })
-    const task2 = new Task({ handler: handlerSpy2 })
-    const task3 = new Task({ handler: handlerSpy3 })
-    const task4 = new Task({ handler: handlerSpy4 })
-    const task5 = new Task({ handler: handlerSpy5 })
+    const task1 = new Task<Buffer>({ handler: handlerSpy1 })
+    const task2 = new Task<Buffer>({ handler: handlerSpy2 })
+    const task3 = new Task<Buffer>({ handler: handlerSpy3 })
+    const task4 = new Task<Buffer>({ handler: handlerSpy4 })
+    const task5 = new Task<Buffer>({ handler: handlerSpy5 })
     const fullHandler = jest.fn()
     const nextHandler = jest.fn()
     const completeHandler = jest.fn()
@@ -313,11 +313,11 @@ describe('start test case', () => {
     const handlerSpy3 = jest.fn((): Promise<void> => Promise.resolve())
     const handlerSpy4 = jest.fn((): Promise<void> => Promise.resolve())
     const handlerSpy5 = jest.fn((): Promise<void> => Promise.resolve())
-    const task1 = new Task({ handler: handlerSpy1 })
-    const task2 = new Task({ handler: handlerSpy2 })
-    const task3 = new Task({ handler: handlerSpy3 })
-    const task4 = new Task({ handler: handlerSpy4 })
-    const task5 = new Task({ handler: handlerSpy5 })
+    const task1 = new Task<Buffer>({ handler: handlerSpy1 })
+    const task2 = new Task<Buffer>({ handler: handlerSpy2 })
+    const task3 = new Task<Buffer>({ handler: handlerSpy3 })
+    const task4 = new Task<Buffer>({ handler: handlerSpy4 })
+    const task5 = new Task<Buffer>({ handler: handlerSpy5 })
     const fullHandler = jest.fn()
     const nextHandler = jest.fn()
     const completeHandler = jest.fn()
@@ -359,7 +359,7 @@ describe('start test case', () => {
 })
 
 describe('stop test case', () => {
-  let queue: AsyncQueue
+  let queue: AsyncQueue<Buffer>
   beforeEach(() => {
     const options = {
       timeout: 5000,
@@ -377,11 +377,11 @@ describe('stop test case', () => {
     const handlerSpy3 = jest.fn((): Promise<void> => timeout(900))
     const handlerSpy4 = jest.fn((): Promise<void> => timeout(900))
     const handlerSpy5 = jest.fn((): Promise<void> => timeout(900))
-    const task1 = new Task({ handler: handlerSpy1 })
-    const task2 = new Task({ handler: handlerSpy2 })
-    const task3 = new Task({ handler: handlerSpy3 })
-    const task4 = new Task({ handler: handlerSpy4 })
-    const task5 = new Task({ handler: handlerSpy5 })
+    const task1 = new Task<Buffer>({ handler: handlerSpy1 })
+    const task2 = new Task<Buffer>({ handler: handlerSpy2 })
+    const task3 = new Task<Buffer>({ handler: handlerSpy3 })
+    const task4 = new Task<Buffer>({ handler: handlerSpy4 })
+    const task5 = new Task<Buffer>({ handler: handlerSpy5 })
     const fullHandler = jest.fn()
     const nextHandler = jest.fn()
     const completeHandler = jest.fn()
@@ -425,7 +425,7 @@ describe('stop test case', () => {
 })
 
 describe('on test case', () => {
-  let queue: AsyncQueue
+  let queue: AsyncQueue<Buffer>
   beforeEach(() => {
     const options = {
       timeout: 5000,
@@ -458,7 +458,7 @@ describe('on test case', () => {
 })
 
 describe('destroy test case', () => {
-  let queue: AsyncQueue
+  let queue: AsyncQueue<Buffer>
   beforeEach(() => {
     const options = {
       timeout: 5000,
@@ -476,11 +476,11 @@ describe('destroy test case', () => {
     const handlerSpy3 = jest.fn((): Promise<void> => timeout(900))
     const handlerSpy4 = jest.fn((): Promise<void> => timeout(900))
     const handlerSpy5 = jest.fn((): Promise<void> => timeout(900))
-    const task1 = new Task({ handler: handlerSpy1 })
-    const task2 = new Task({ handler: handlerSpy2 })
-    const task3 = new Task({ handler: handlerSpy3 })
-    const task4 = new Task({ handler: handlerSpy4 })
-    const task5 = new Task({ handler: handlerSpy5 })
+    const task1 = new Task<Buffer>({ handler: handlerSpy1 })
+    const task2 = new Task<Buffer>({ handler: handlerSpy2 })
+    const task3 = new Task<Buffer>({ handler: handlerSpy3 })
+    const task4 = new Task<Buffer>({ handler: handlerSpy4 })
+    const task5 = new Task<Buffer>({ handler: handlerSpy5 })
     const fullHandler = jest.fn()
     const nextHandler = jest.fn()
     const completeHandler = jest.fn()

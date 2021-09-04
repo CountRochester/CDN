@@ -8,7 +8,8 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@t/*": ["./src/test/*"]
     }
   },
   "include": [

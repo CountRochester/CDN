@@ -26,6 +26,10 @@ export class MemoryMap {
 
   #currentSize: number
 
+  /**
+   * @param options.files - array of file objects with paths
+   * @param options.capacity - capacity of file storage in bytes
+   */
   constructor (options: MemoryMapOptions) {
     this.#capacity = options.capacity
     this.#currentSize = 0
@@ -36,7 +40,7 @@ export class MemoryMap {
       }
       this.#map.set(file.path, {
         start: this.#currentSize,
-        end: file.content.length
+        end: this.#currentSize + file.content.length
       })
       this.#currentSize += file.content.length
     })
@@ -54,6 +58,11 @@ export class MemoryMap {
     return this.#map.size
   }
 
+  /**
+   *
+   * @param path
+   * @returns
+   */
   getFileAddress (path: string): Address|undefined {
     return this.#map.get(path)
   }
@@ -68,8 +77,9 @@ export class MemoryMap {
     }
     this.#map.set(file.path, {
       start: this.#currentSize,
-      end: file.content.length
+      end: this.#currentSize + file.content.length
     })
+    this.#currentSize += file.content.length
   }
 
   getAll (): FileAddress[] {

@@ -1,2 +1,2 @@
 export { Task } from './task'
-export { AsyncQueue } from './async-queue'
+export { AsyncQueue, CompleteTaskResult } from './async-queue'

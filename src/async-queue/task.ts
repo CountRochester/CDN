@@ -10,7 +10,7 @@ export interface TaskOptions {
   handler: TaskFunction
 }
 
-export class Task extends EventEmitter {
+export class Task<T> extends EventEmitter {
   id: string
 
   handler?: TaskFunction
@@ -20,6 +20,8 @@ export class Task extends EventEmitter {
   #events: Array<string|symbol>
 
   errors: Error[]
+
+  timeoutTimer: NodeJS.Timeout|undefined
 
   constructor (options: TaskOptions) {
     super()
@@ -39,7 +41,7 @@ export class Task extends EventEmitter {
   }
 
   // eslint-disable-next-line max-statements
-  async execute (...args: any[]): Promise<any> {
+  async execute (...args: any[]): Promise<T|undefined> {
     try {
       if (this.status !== 'ready') {
         throw new Error(`Invalid task status: ${this.status}`)
@@ -73,6 +75,9 @@ export class Task extends EventEmitter {
   }
 
   destroy (): void {
+    if (this.timeoutTimer) {
+      this.timeoutTimer.unref()
+    }
     this.errors = []
     this.status = 'destroyed'
     delete this.handler

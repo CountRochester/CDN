@@ -8,4 +8,8 @@ module.exports = {
       useESM: true,
     },
   },
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+    '^@t/(.*)$': '<rootDir>/src/test/$1',
+  }
 }

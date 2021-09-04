@@ -10,7 +10,7 @@ export interface AsyncQueueOptions {
   timeoutBeforeDestroy?: number
 }
 
-async function timeoutDestroy (ms: number, task?: Task) {
+async function timeoutDestroy (ms: number, task?: Task<any>) {
   await timeout(ms)
   task?.destroy()
 }
@@ -19,36 +19,15 @@ interface Queue extends EventEmitter {
   capacity: number
 }
 
-function getProxyQueue (queue: Queue) {
-  const taskArray: Task[] = []
-  return new Proxy(taskArray, {
-    set (target, prop: string|symbol, val): boolean {
-      if (target.length > queue.capacity) {
-        return false
-      }
-      if (target.length === 0) {
-        queue.emit('empty')
-      }
-      if (prop === 'length' && typeof val === 'number') {
-        target.length = val
-        return true
-      }
-      if (val instanceof Task) {
-        target[Number(prop)] = val
-        if (target.length === queue.capacity) {
-          queue.emit('full')
-        }
-        return true
-      }
-      return false
-    }
-  })
+export interface CompleteTaskResult<T> {
+  taskId?: string
+  result: T
 }
 
-export class AsyncQueue extends EventEmitter {
-  queue: Task[]
+export class AsyncQueue<T> extends EventEmitter {
+  queue: Task<T>[]
 
-  currentTask?: Task
+  currentTask?: Task<T>
 
   timeout: number
 
@@ -64,7 +43,6 @@ export class AsyncQueue extends EventEmitter {
 
   constructor (options: AsyncQueueOptions) {
     super()
-    this.queue = getProxyQueue(this)
     this.timeout = options.timeout
     this.delay = options.delay || 0
     this.capacity = options.capacity || Number.MAX_SAFE_INTEGER
@@ -72,6 +50,7 @@ export class AsyncQueue extends EventEmitter {
     this.currentTask = undefined
     this.timeoutBeforeDestroy = options.timeoutBeforeDestroy || GRACEFULL_TIMEOUT
     this.#events = ['full', 'empty', 'next', 'complete', 'error']
+    this.queue = this.getProxyQueue()
   }
 
   get size (): number {
@@ -90,6 +69,35 @@ export class AsyncQueue extends EventEmitter {
     return this.size === 0
   }
 
+  private getProxyQueue () {
+    const taskArray: Task<T>[] = []
+    const { capacity } = this
+    const emit = this.emit.bind(this)
+    return new Proxy(taskArray, {
+      set (target, prop: string|symbol, val): boolean {
+        if (target.length > capacity) {
+          return false
+        }
+        if (target.length === 0) {
+          emit('empty')
+        }
+        if (prop === 'length' && typeof val === 'number') {
+          target.length = val
+          return true
+        }
+        if (val instanceof Task) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          target[Number(prop)] = val
+          if (target.length === capacity) {
+            emit('full')
+          }
+          return true
+        }
+        return false
+      }
+    })
+  }
+
   on (event: string|symbol, listener: (...args: any[]) => void):this {
     if (!this.#events.includes(event)) {
       throw new Error('Invalid event')
@@ -97,13 +105,14 @@ export class AsyncQueue extends EventEmitter {
     return super.on(event, listener)
   }
 
-  async add (task: Task): Promise<void> {
+  async add (task: Task<T>): Promise<void> {
     await timeout(this.delay)
     if (this.isFull) {
       return
     }
+
     this.queue.push(task)
-    setTimeout(() => {
+    task.timeoutTimer = setTimeout(() => {
       this.queue = this.queue.filter(el => el.id !== task.id)
       task?.destroy()
     }, this.timeout)
@@ -119,7 +128,9 @@ export class AsyncQueue extends EventEmitter {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const result = await this.currentTask?.execute(...args)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      this.emit('complete', { taskId: this.currentTask?.id, result })
+      const completeResult: CompleteTaskResult<any> = { taskId: this.currentTask?.id, result }
+      this.emit('complete', completeResult)
+      this.currentTask?.destroy()
       this.currentTask = undefined
       if (this.isEmpty && this.#status !== 'destroyed') {
         this.#status = 'ready'
