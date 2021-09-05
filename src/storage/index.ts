@@ -60,16 +60,19 @@ export class Storage {
     const keysObj = pathes
       .map(el => relative(this.rootPath, el))
       .map(el => el.split(sep).join('/'))
-      .map((el, index) => ({ key: el, path: pathes[index] }))
+      .map((el, index) => ({ relativePath: el, absolutePath: pathes[index] }))
     const fileObj = await Promise.all(keysObj.map(formFileObj))
 
-    fileObj.forEach(({ file, key }) => {
+    fileObj.forEach(({ file, relativePath }) => {
       if (this.buffer.length <= this.currentSize + file.length) {
         this.isBusy = false
         throw ERROR_STORAGE_FULL
       }
       file.copy(this.buffer, this.currentSize, 0, file.length)
-      this.fileTable.set(key, { start: this.currentSize, end: this.currentSize + file.length })
+      this.fileTable.set(relativePath, {
+        start: this.currentSize,
+        end: this.currentSize + file.length
+      })
       this.currentSize += file.length
     })
   }

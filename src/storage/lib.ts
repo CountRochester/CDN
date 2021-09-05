@@ -7,11 +7,11 @@ interface FileStat {
 }
 
 interface FileObjectInputInterface {
-  key: string
-  path: string
+  relativePath: string
+  absolutePath: string
 }
 
-interface FileObjectOutputInterface extends FileObjectInputInterface {
+export interface FileObjectOutputInterface extends FileObjectInputInterface {
   file: Buffer
 }
 
@@ -19,7 +19,7 @@ interface FileObjectOutputInterface extends FileObjectInputInterface {
  * Returns true if the input string is a dirrectory
  * @param path - path of the file or dirrectory
  */
-async function isDir (path: string): Promise<boolean> {
+export async function isDir (path: string): Promise<boolean> {
   const stats = await promises.lstat(path)
   return stats.isDirectory()
 }
@@ -28,7 +28,7 @@ async function isDir (path: string): Promise<boolean> {
  * Returns the stats of the path (path with prop isDir)
  * @param path - path of the file or dirrectory
  */
-async function getFileStat (path: string): Promise<FileStat> {
+export async function getFileStat (path: string): Promise<FileStat> {
   const isDirrectory = await isDir(path)
   return {
     path,
@@ -55,18 +55,18 @@ export async function getFilesPath (root: string): Promise<Array<string>> {
 }
 
 /**
- * Forms the file object, contains the key (the relative path of the file),
+ * Forms the file object, contains the relativePath ,
  * the absolute path of the file and content of the file
- * @param options.key - the relative path of the file
+ * @param options.relativePath - the relative path of the file
  * @param options.path - the absolute path of the file
  */
 export async function formFileObj ({
-  key, path
+  relativePath, absolutePath
 }: FileObjectInputInterface): Promise<FileObjectOutputInterface> {
-  const file = await promises.readFile(path)
+  const file = await promises.readFile(absolutePath)
   return {
-    key,
-    path,
+    relativePath,
+    absolutePath,
     file,
   }
 }
@@ -81,7 +81,7 @@ export async function readFilesFromPath (root: string): Promise<Array<FileObject
   const keysObj = paths
     .map(el => relative(root, el))
     .map(el => el.split(sep).join('/'))
-    .map((el, index) => ({ key: el, path: paths[index] }))
+    .map((el, index) => ({ relativePath: el, absolutePath: paths[index] }))
   const output = await Promise.all(keysObj.map(formFileObj))
   return output
 }
