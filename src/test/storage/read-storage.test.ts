@@ -14,7 +14,7 @@ describe('constructor test case', () => {
     const bufferSize = 1024 * 1024 * 50
     const files = await readFilesFromPath('data')
     const filesToInit = files.map(fileObj => ({
-      path: fileObj.key,
+      path: fileObj.relativePath,
       content: fileObj.file
     }))
     const size = files.reduce((acc, el) => acc + el.file.length, 0)
@@ -39,7 +39,7 @@ describe('readFile test case', () => {
     const bufferSize = 1024 * 1024 * 50
     const files = await readFilesFromPath('data')
     const filesToInit = files.map(fileObj => ({
-      path: fileObj.key,
+      path: fileObj.relativePath,
       content: fileObj.file
     }))
     const sharedMemory = new SharedArrayBuffer(bufferSize * 2)
@@ -60,7 +60,7 @@ describe('readFile test case', () => {
     const storage = new ReadStorage(options)
     const fileToTest = files[2]
     const t1 = performance.now()
-    const result = await storage.readFile(fileToTest.key)
+    const result = await storage.readFile(fileToTest.relativePath)
     const t2 = performance.now()
     expect(result).toBeInstanceOf(Buffer)
     expect(result.toString()).toBe(fileToTest.file.toString())
@@ -75,7 +75,7 @@ describe('readFile test case', () => {
     const bufferSize = 1024 * 1024 * 50
     const files = await readFilesFromPath('data')
     const filesToInit = files.map(fileObj => ({
-      path: fileObj.key,
+      path: fileObj.relativePath,
       content: fileObj.file
     }))
     const sharedMemory = new SharedArrayBuffer(bufferSize * 2)
@@ -96,7 +96,7 @@ describe('readFile test case', () => {
 
     const storage = new ReadStorage(options)
     const t1 = performance.now()
-    const result = await Promise.all(files.map(el => storage.readFile(el.key)))
+    const result = await Promise.all(files.map(el => storage.readFile(el.relativePath)))
     const t2 = performance.now()
     expect(result).toBeInstanceOf(Array)
     expect(result.length).toBe(files.length)

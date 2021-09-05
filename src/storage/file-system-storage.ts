@@ -1,5 +1,7 @@
-import { FSWatcher, promises, watch } from 'fs'
-import { Emitter } from '@/common/emitter'
+import {
+  FSWatcher, promises, watch, constants, access, PathLike, readFile
+} from 'fs'
+import { Emitter, EmitFunction } from '@/common/emitter'
 import { join } from 'path'
 import {
   isDir, FileObjectOutputInterface, getFilesPath, formFileObj
@@ -13,6 +15,52 @@ type EventType = 'rename' | 'change'
 
 const IS_DIR_ERROR = (): Error => new Error('The input path is a dirrectory')
 
+const eventHandlers = {
+  rename: (filename: PathLike, rootPath: string, emit: EmitFunction) => {
+    const relativePath = filename.toString()
+    const path = join(rootPath, relativePath)
+    access(path, constants.F_OK, (err) => {
+      if (err) {
+        emit('delete', { relativePath })
+      } else {
+        readFile(path, (error, file) => {
+          if (error) {
+            emit('error', error)
+          } else {
+            emit('new', {
+              relativePath,
+              file
+            })
+          }
+        })
+      }
+    })
+  },
+  change: (filename: PathLike, rootPath: string, emit: EmitFunction) => {
+    const relativePath = filename.toString()
+    const path = join(rootPath, relativePath)
+    access(path, constants.F_OK, (err) => {
+      if (err) {
+        emit('error', err)
+      } else {
+        readFile(path, (error, file) => {
+          if (error) {
+            if (error.code === 'EISDIR') {
+              return
+            }
+            emit('error', error)
+          } else {
+            emit('change', {
+              relativePath,
+              file
+            })
+          }
+        })
+      }
+    })
+  }
+}
+
 export class FileSystemStorage extends Emitter {
   rootPath: string
 
@@ -22,7 +70,7 @@ export class FileSystemStorage extends Emitter {
 
   constructor (options: FileSystemStorageOptions) {
     super({
-      events: ['change']
+      events: ['change', 'delete', 'new', 'change', 'error']
     })
     this.rootPath = options.rootPath
     this.isWatching = false
@@ -63,8 +111,8 @@ export class FileSystemStorage extends Emitter {
    * @param filename - relative path with the filename
    */
   // eslint-disable-next-line class-methods-use-this
-  private watchListener (eventType: EventType, filename: Buffer) {
-    console.log(eventType, filename.toString())
+  private watchListener (eventType: EventType, filename: PathLike) {
+    eventHandlers[eventType](filename, this.rootPath, this.emit.bind(this))
   }
 
   /**
