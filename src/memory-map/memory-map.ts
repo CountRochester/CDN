@@ -59,14 +59,17 @@ export class MemoryMap {
   }
 
   /**
-   *
-   * @param path
-   * @returns
+   * Returns the file's address
+   * @param path path of the file
    */
   getFileAddress (path: string): Address|undefined {
     return this.#map.get(path)
   }
 
+  /**
+   * Adds the file to the map
+   * @param file new file element
+   */
   addFile (file: FileElement): void {
     if ((file.content.length + this.#currentSize) >= this.#capacity) {
       throw new Error('The map is full')
@@ -82,6 +85,9 @@ export class MemoryMap {
     this.#currentSize += file.content.length
   }
 
+  /**
+   * Returns all the files addresses
+   */
   getAll (): FileAddress[] {
     const output: FileAddress[] = []
     this.#map.forEach((value, key) => {

@@ -1,6 +1,6 @@
-import { EventEmitter } from 'events'
-import { generateRandomString } from '../common/helpers'
-import { TaskError } from '../error/index'
+import { Emitter } from '@/common/emitter'
+import { generateRandomString } from '@/common/helpers'
+import { TaskError } from '@/error'
 
 export interface TaskFunction {
   (...args: any): Promise<any>
@@ -10,34 +10,26 @@ export interface TaskOptions {
   handler: TaskFunction
 }
 
-export class Task<T> extends EventEmitter {
+export class Task<T> extends Emitter {
   id: string
 
   handler?: TaskFunction
 
   status: string
 
-  #events: Array<string|symbol>
-
   errors: Error[]
 
   timeoutTimer: NodeJS.Timeout|undefined
 
   constructor (options: TaskOptions) {
-    super()
+    super({
+      events: ['created', 'beforeExecute', 'afterExecute', 'error']
+    })
     this.id = generateRandomString()
     this.status = 'ready'
     this.handler = options.handler
     this.emit('created', this.id)
     this.errors = []
-    this.#events = ['created', 'beforeExecute', 'afterExecute', 'error']
-  }
-
-  on (event: string|symbol, listener: (...args: any[]) => void):this {
-    if (!this.#events.includes(event)) {
-      throw new Error('Invalid event')
-    }
-    return super.on(event, listener)
   }
 
   // eslint-disable-next-line max-statements
@@ -81,6 +73,6 @@ export class Task<T> extends EventEmitter {
     this.errors = []
     this.status = 'destroyed'
     delete this.handler
-    this.#events.map(event => this.removeAllListeners(event))
+    this.events.map(event => this.removeAllListeners(event))
   }
 }

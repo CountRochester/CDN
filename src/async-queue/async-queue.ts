@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { Emitter } from '@/common/emitter'
 import { Task } from './task'
 import { timeout } from '../common/helpers'
 import { GRACEFULL_TIMEOUT } from '../config/async-queue'
@@ -15,16 +15,12 @@ async function timeoutDestroy (ms: number, task?: Task<any>) {
   task?.destroy()
 }
 
-interface Queue extends EventEmitter {
-  capacity: number
-}
-
 export interface CompleteTaskResult<T> {
   taskId?: string
   result: T
 }
 
-export class AsyncQueue<T> extends EventEmitter {
+export class AsyncQueue<T> extends Emitter {
   queue: Task<T>[]
 
   currentTask?: Task<T>
@@ -39,17 +35,16 @@ export class AsyncQueue<T> extends EventEmitter {
 
   timeoutBeforeDestroy: number
 
-  #events: Array<string|symbol>
-
   constructor (options: AsyncQueueOptions) {
-    super()
+    super({
+      events: ['full', 'empty', 'next', 'complete', 'error']
+    })
     this.timeout = options.timeout
     this.delay = options.delay || 0
     this.capacity = options.capacity || Number.MAX_SAFE_INTEGER
     this.#status = 'ready'
     this.currentTask = undefined
     this.timeoutBeforeDestroy = options.timeoutBeforeDestroy || GRACEFULL_TIMEOUT
-    this.#events = ['full', 'empty', 'next', 'complete', 'error']
     this.queue = this.getProxyQueue()
   }
 
@@ -96,13 +91,6 @@ export class AsyncQueue<T> extends EventEmitter {
         return false
       }
     })
-  }
-
-  on (event: string|symbol, listener: (...args: any[]) => void):this {
-    if (!this.#events.includes(event)) {
-      throw new Error('Invalid event')
-    }
-    return super.on(event, listener)
   }
 
   async add (task: Task<T>): Promise<void> {
@@ -177,6 +165,6 @@ export class AsyncQueue<T> extends EventEmitter {
     this.queue.forEach(task => task.destroy())
     this.#status = 'destroyed'
     this.queue.length = 0
-    this.#events.map(event => this.removeAllListeners(event))
+    this.events.map(event => this.removeAllListeners(event))
   }
 }

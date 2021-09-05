@@ -15,8 +15,6 @@ interface FileObjectOutputInterface extends FileObjectInputInterface {
   file: Buffer
 }
 
-const ERROR_STORAGE_FULL = (): Error => new Error('The storage is full')
-
 /**
  * Returns true if the input string is a dirrectory
  * @param path - path of the file or dirrectory
