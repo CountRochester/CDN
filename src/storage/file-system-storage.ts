@@ -219,6 +219,3 @@ export class FileSystemStorage extends Emitter {
     this.events.map(event => this.removeAllListeners(event))
   }
 }
-
-const storage = new FileSystemStorage({ rootPath: 'data' })
-storage.on('new', () => { })

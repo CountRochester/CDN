@@ -1,13 +1,13 @@
 import { EventEmitter } from 'events'
 
 export interface EmotterOptions {
-  events: Readonly<Array<string|symbol>>
+  events: ReadonlyArray<string|symbol>
 }
 
 export type EmitFunction = (event: string | symbol, payload?: any) => boolean
 
 export abstract class Emitter extends EventEmitter {
-  protected events: Readonly<Array<string|symbol>>
+  protected events: ReadonlyArray<string|symbol>
 
   constructor (options: EmotterOptions) {
     super()
@@ -16,7 +16,8 @@ export abstract class Emitter extends EventEmitter {
 
   abstract destroy(): void | Promise<void>
 
-  on (event: string, listener: (...args: any[]) => void):this {
+  // eslint-disable-next-line max-len
+  on (event: string|symbol, listener: (...args: any[]) => void):this {
     if (!this.events.includes(event)) {
       throw new Error('Invalid event')
     }
