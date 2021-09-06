@@ -1,13 +1,13 @@
 import { EventEmitter } from 'events'
 
 export interface EmotterOptions {
-  events: Array<string|symbol>
+  events: Readonly<Array<string|symbol>>
 }
 
 export type EmitFunction = (event: string | symbol, payload?: any) => boolean
 
 export abstract class Emitter extends EventEmitter {
-  protected events: Array<string|symbol>
+  protected events: Readonly<Array<string|symbol>>
 
   constructor (options: EmotterOptions) {
     super()

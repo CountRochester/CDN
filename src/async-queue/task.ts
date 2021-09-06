@@ -23,7 +23,7 @@ export class Task<T> extends Emitter {
 
   constructor (options: TaskOptions) {
     super({
-      events: ['created', 'beforeExecute', 'afterExecute', 'error']
+      events: ['created', 'beforeExecute', 'afterExecute', 'error'] as const
     })
     this.id = generateRandomString()
     this.status = 'ready'

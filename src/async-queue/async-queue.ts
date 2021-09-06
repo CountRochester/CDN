@@ -37,7 +37,7 @@ export class AsyncQueue<T> extends Emitter {
 
   constructor (options: AsyncQueueOptions) {
     super({
-      events: ['full', 'empty', 'next', 'complete', 'error']
+      events: ['full', 'empty', 'next', 'complete', 'error'] as const
     })
     this.timeout = options.timeout
     this.delay = options.delay || 0
