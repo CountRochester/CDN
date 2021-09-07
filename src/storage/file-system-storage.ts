@@ -17,19 +17,22 @@ type EventType = 'rename' | 'change'
 
 const IS_DIR_ERROR = (): Error => new Error('The input path is a dirrectory')
 
-const eventHandlers = {
+export const eventHandlers = {
   /**
    * Handler for rename, create and delete file event of the file system
    * @param filename - relative path to the file
    * @param rootPath - root path
    * @param emit - emit function to emit events
    */
-  rename: (filename: PathLike, rootPath: string, emit: EmitFunction) => {
+  rename: (filename: PathLike, rootPath: string, emit: EmitFunction, cb?: () => void): void => {
     const relativePath = filename.toString()
     const path = join(rootPath, relativePath)
     access(path, constants.F_OK, (err) => {
       if (err) {
         emit('delete', { relativePath })
+        if (cb) {
+          cb()
+        }
       } else {
         readFile(path, (error, file) => {
           if (error) {
@@ -39,6 +42,9 @@ const eventHandlers = {
               relativePath,
               file
             })
+          }
+          if (cb) {
+            cb()
           }
         })
       }
@@ -50,16 +56,22 @@ const eventHandlers = {
    * @param rootPath - root path
    * @param emit - emit function to emit events
    */
-  change: (filename: PathLike, rootPath: string, emit: EmitFunction) => {
+  change: (filename: PathLike, rootPath: string, emit: EmitFunction, cb?: () => void): void => {
     const relativePath = filename.toString()
     const path = join(rootPath, relativePath)
     access(path, constants.F_OK, (err) => {
       if (err) {
         emit('error', err)
+        if (cb) {
+          cb()
+        }
       } else {
         readFile(path, (error, file) => {
           if (error) {
             if (error.code === 'EISDIR') {
+              if (cb) {
+                cb()
+              }
               return
             }
             emit('error', error)
@@ -68,6 +80,9 @@ const eventHandlers = {
               relativePath,
               file
             })
+          }
+          if (cb) {
+            cb()
           }
         })
       }
@@ -99,9 +114,8 @@ export class FileSystemStorage extends Emitter {
   private watcher: FSWatcher|undefined
 
   constructor (options: FileSystemStorageOptions) {
-    // const events =
     super({
-      events: ['change', 'delete', 'new', 'change', 'error'] as const
+      events: ['change', 'delete', 'new', 'error'] as const
     })
     this.rootPath = options.rootPath
     this.isWatching = false
