@@ -24,6 +24,7 @@ export const eventHandlers = {
    * @param rootPath - root path
    * @param emit - emit function to emit events
    */
+  // eslint-disable-next-line max-params
   rename: (filename: PathLike, rootPath: string, emit: EmitFunction, cb?: () => void): void => {
     const relativePath = filename.toString()
     const path = join(rootPath, relativePath)
@@ -56,6 +57,7 @@ export const eventHandlers = {
    * @param rootPath - root path
    * @param emit - emit function to emit events
    */
+  // eslint-disable-next-line max-params
   change: (filename: PathLike, rootPath: string, emit: EmitFunction, cb?: () => void): void => {
     const relativePath = filename.toString()
     const path = join(rootPath, relativePath)
@@ -94,7 +96,7 @@ export const eventHandlers = {
  * Creates dir if needed
  * @param dirPath - path of the dir
  */
-async function makeDir (dirPath: PathLike): Promise<void> {
+export async function makeDir (dirPath: PathLike): Promise<void> {
   try {
     await promises.access(dirPath, constants.F_OK)
   } catch (noDirErr) {
@@ -145,7 +147,9 @@ export class FileSystemStorage extends Emitter {
    * @param path - relative path of the dir
    */
   async readDir (path: string): Promise<Array<FileObjectOutputInterface>> {
-    const relativePaths = await getFilesPath(path)
+    const relativePaths = (await getFilesPath(join(this.rootPath, path)))
+      .map(el => relative(this.rootPath, el))
+
     const paths = relativePaths.map(el => ({
       relativePath: el,
       absolutePath: join(this.rootPath, el)
@@ -160,7 +164,7 @@ export class FileSystemStorage extends Emitter {
    * @param path - relative path of the dir
    */
   async readAllFiles (): Promise<Array<FileObjectOutputInterface>> {
-    const output = await this.readDir(this.rootPath)
+    const output = await this.readDir('')
     return output
   }
 

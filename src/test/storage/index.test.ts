@@ -2,8 +2,8 @@
 /* eslint-disable max-statements */
 import { performance } from 'perf_hooks'
 import { promises } from 'fs'
-import { Storage } from '../../storage'
-import { clearMockFiles, mockFiles } from '../test-utils/mock-files'
+import { Storage } from '@/storage'
+import { clearMockFiles, mockFiles } from '@t/test-utils/mock-files'
 
 describe('Storage test case', () => {
   beforeEach(() => {
