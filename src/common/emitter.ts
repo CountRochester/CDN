@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events'
 
-export interface EmotterOptions {
+export interface EmitterOptions {
   events: ReadonlyArray<string|symbol>
 }
 
@@ -9,7 +9,7 @@ export type EmitFunction = (event: string | symbol, payload?: any) => boolean
 export abstract class Emitter extends EventEmitter {
   protected events: ReadonlyArray<string|symbol>
 
-  constructor (options: EmotterOptions) {
+  constructor (options: EmitterOptions) {
     super()
     this.events = options.events
   }

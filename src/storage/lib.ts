@@ -16,8 +16,8 @@ export interface FileObjectOutputInterface extends FileObjectInputInterface {
 }
 
 /**
- * Returns true if the input string is a dirrectory
- * @param path - path of the file or dirrectory
+ * Returns true if the input string is a directory
+ * @param path - path of the file or directory
  */
 export async function isDir (path: string): Promise<boolean> {
   const stats = await promises.lstat(path)
@@ -26,13 +26,13 @@ export async function isDir (path: string): Promise<boolean> {
 
 /**
  * Returns the stats of the path (path with prop isDir)
- * @param path - path of the file or dirrectory
+ * @param path - path of the file or directory
  */
 export async function getFileStat (path: string): Promise<FileStat> {
-  const isDirrectory = await isDir(path)
+  const isDirectory = await isDir(path)
   return {
     path,
-    isDir: isDirrectory
+    isDir: isDirectory
   }
 }
 
@@ -45,10 +45,10 @@ export async function getFilesPath (root: string): Promise<Array<string>> {
   const filesPath: Array<string> = []
   const fileNames: Array<string> = await promises.readdir(root)
   const namePromises = fileNames.map((name: string) => getFileStat(join(root, name)))
-  const pathes = await Promise.all(namePromises)
-  const files = pathes.filter(el => !el.isDir).map(el => el.path)
+  const paths = await Promise.all(namePromises)
+  const files = paths.filter(el => !el.isDir).map(el => el.path)
   filesPath.push(...files)
-  const dirs = pathes.filter(el => el.isDir).map(el => el.path)
+  const dirs = paths.filter(el => el.isDir).map(el => el.path)
   const dirFiles = await Promise.all(dirs.map(el => getFilesPath(el)))
   filesPath.push(...dirFiles.flat())
   return filesPath
@@ -72,7 +72,7 @@ export async function formFileObj ({
 }
 
 /**
- * Reads the content of input dirrectory
+ * Reads the content of input directory
  * @param root - root path for reading files
  * @returns Array of the files with absolute and relative paths
  */

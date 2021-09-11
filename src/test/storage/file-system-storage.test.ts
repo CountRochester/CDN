@@ -12,8 +12,8 @@ import { timeout } from '@/common/helpers'
 
 jest.setTimeout(20000)
 
-describe('Watch dirrectory test case', () => {
-  test('should propertly start watching', async () => {
+describe('Watch directory test case', () => {
+  test('should properly start watching', async () => {
     const storage = new FileSystemStorage({ rootPath: 'data' })
     storage.watch()
 

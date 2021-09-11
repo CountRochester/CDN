@@ -15,7 +15,7 @@ export interface FileSystemStorageOptions {
 
 type EventType = 'rename' | 'change'
 
-const IS_DIR_ERROR = (): Error => new Error('The input path is a dirrectory')
+const IS_DIR_ERROR = (): Error => new Error('The input path is a directory')
 
 export const eventHandlers = {
   /**
@@ -143,7 +143,7 @@ export class FileSystemStorage extends Emitter {
 
   /**
    * Returns the array of objects, contains content, relative and absolute path
-   * all of the files inside the input dirrectory and subdirs
+   * all of the files inside the input directory and subdirectories
    * @param path - relative path of the dir
    */
   async readDir (path: string): Promise<Array<FileObjectOutputInterface>> {
@@ -160,7 +160,7 @@ export class FileSystemStorage extends Emitter {
 
   /**
    * Returns the array of objects, contains content, relative and absolute path
-   * all of the files inside the root dirrectory and subdirs
+   * all of the files inside the root directory and subdirectories
    * @param path - relative path of the dir
    */
   async readAllFiles (): Promise<Array<FileObjectOutputInterface>> {
@@ -169,7 +169,7 @@ export class FileSystemStorage extends Emitter {
   }
 
   /**
-   * Writes the new file and adds the hash to the filename to exclude overlaping
+   * Writes the new file and adds the hash to the filename to exclude overlapping
    * @param path - relative path of the file
    * @param file - content of the file
    * @returns the relative path to the new file

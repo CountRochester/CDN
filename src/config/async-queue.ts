@@ -1,1 +1,1 @@
-export const GRACEFULL_TIMEOUT = 5000
+export const GRACEFUL_TIMEOUT = 5000

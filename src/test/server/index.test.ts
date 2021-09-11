@@ -3,7 +3,7 @@ import { defaultErrorHandler, sendResponse, getRequestDetail } from '../../serve
 import { ServerError } from '../../error'
 
 describe('defaultErrorHandler test case', () => {
-  test('Should write headers and send the responce to the client', () => {
+  test('Should write headers and send the response to the client', () => {
     const code = 500
     const error = new ServerError({ code, message: 'test' })
     const writeHeadSpy = jest.fn()
@@ -22,7 +22,7 @@ describe('defaultErrorHandler test case', () => {
 })
 
 describe('sendResponse test case', () => {
-  test('Should write headers and send the responce to the client', () => {
+  test('Should write headers and send the response to the client', () => {
     const response = {
       code: 200,
       payload: 'test'
@@ -66,7 +66,7 @@ describe('getRequestDetail test case', () => {
       getRequestDetail(req)
     } catch (err) {
       expect(err).toBeInstanceOf(ServerError)
-      expect(err).toEqual(new ServerError({ code: 403, message: 'Method not alowed' }))
+      expect(err).toEqual(new ServerError({ code: 403, message: 'Method not allowed' }))
     }
   })
 })

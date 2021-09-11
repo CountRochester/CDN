@@ -137,7 +137,7 @@ describe('next test case', () => {
     queue = new AsyncQueue(options)
   })
 
-  test('should propertly run the queue 1/2', async () => {
+  test('should properly run the queue 1/2', async () => {
     const handlerSpy1 = jest.fn((): Promise<void> => Promise.resolve())
     const handlerSpy2 = jest.fn((): Promise<void> => Promise.resolve())
     const handlerSpy3 = jest.fn((): Promise<void> => Promise.resolve())
@@ -190,7 +190,7 @@ describe('next test case', () => {
     expect(queue.size).toBe(0)
   })
 
-  test('should propertly run the queue 2/2', async () => {
+  test('should properly run the queue 2/2', async () => {
     const handlerSpy1 = jest.fn((): Promise<void> => Promise.resolve())
     const handlerSpy2 = jest.fn((): Promise<void> => Promise.resolve())
     const handlerSpy3 = jest.fn((): Promise<void> => Promise.resolve())
@@ -255,7 +255,7 @@ describe('start test case', () => {
     queue = new AsyncQueue(options)
   })
 
-  test('should propertly run the queue 1/2', async () => {
+  test('should properly run the queue 1/2', async () => {
     const handlerSpy1 = jest.fn((): Promise<void> => Promise.resolve())
     const handlerSpy2 = jest.fn((): Promise<void> => Promise.resolve())
     const handlerSpy3 = jest.fn((): Promise<void> => Promise.resolve())
@@ -307,7 +307,7 @@ describe('start test case', () => {
     expect(queue.status).toBe('running')
   })
 
-  test('should propertly run the queue 2/2', async () => {
+  test('should properly run the queue 2/2', async () => {
     const handlerSpy1 = jest.fn((): Promise<void> => Promise.resolve())
     const handlerSpy2 = jest.fn((): Promise<void> => Promise.resolve())
     const handlerSpy3 = jest.fn((): Promise<void> => Promise.resolve())
@@ -371,7 +371,7 @@ describe('stop test case', () => {
     queue = new AsyncQueue(options)
   })
 
-  test('should propertly stop the queue after start', async () => {
+  test('should properly stop the queue after start', async () => {
     const handlerSpy1 = jest.fn((): Promise<void> => timeout(900))
     const handlerSpy2 = jest.fn((): Promise<void> => timeout(900))
     const handlerSpy3 = jest.fn((): Promise<void> => timeout(900))
@@ -470,7 +470,7 @@ describe('destroy test case', () => {
     queue = new AsyncQueue(options)
   })
 
-  test('should propertly destroy the queue after start', async () => {
+  test('should properly destroy the queue after start', async () => {
     const handlerSpy1 = jest.fn((): Promise<void> => timeout(900))
     const handlerSpy2 = jest.fn((): Promise<void> => timeout(900))
     const handlerSpy3 = jest.fn((): Promise<void> => timeout(900))

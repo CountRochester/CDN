@@ -93,6 +93,7 @@ describe('Task test case', () => {
     try {
       await task.execute()
     } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       expect(error.constructor.name).toBe('NodeError')
       expect(err).toBe(firstErr)
     }

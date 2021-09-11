@@ -52,8 +52,8 @@ export class ReadStorage {
     return Promise.resolve(file)
   }
 
-  private async getFiles (pathes: string[]): Promise<Buffer[]> {
-    const result = await Promise.allSettled(pathes.map(path => this.getFile(path)))
+  private async getFiles (paths: string[]): Promise<Buffer[]> {
+    const result = await Promise.allSettled(paths.map(path => this.getFile(path)))
     const success = result
       .filter(el => el.status === 'fulfilled') as PromiseFulfilledResult<Buffer>[]
 

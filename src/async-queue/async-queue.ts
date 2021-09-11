@@ -1,7 +1,7 @@
 import { Emitter } from '@/common/emitter'
 import { Task } from './task'
 import { timeout } from '../common/helpers'
-import { GRACEFULL_TIMEOUT } from '../config/async-queue'
+import { GRACEFUL_TIMEOUT } from '../config/async-queue'
 
 export interface AsyncQueueOptions {
   timeout: number
@@ -44,7 +44,7 @@ export class AsyncQueue<T> extends Emitter {
     this.capacity = options.capacity || Number.MAX_SAFE_INTEGER
     this.#status = 'ready'
     this.currentTask = undefined
-    this.timeoutBeforeDestroy = options.timeoutBeforeDestroy || GRACEFULL_TIMEOUT
+    this.timeoutBeforeDestroy = options.timeoutBeforeDestroy || GRACEFUL_TIMEOUT
     this.queue = this.getProxyQueue()
   }
 
