@@ -29,7 +29,7 @@ export const files = [
   {
     path: 'data/sub-dir/sub-sub-dir',
     name: 'very-nested-file2.txt',
-    content: 'this file is nested... realy'
+    content: 'this file is nested... really'
   },
   {
     path: 'data/sub-dir/sub-sub-dir/sub-sub-sub-dir',

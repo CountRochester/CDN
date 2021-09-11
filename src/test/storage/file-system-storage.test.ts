@@ -247,3 +247,25 @@ describe('readAllFiles test case', () => {
     expect(result.length).toBe(5)
   })
 })
+
+describe('writeFile test case', () => {
+  test('should write the file and return the path', async () => {
+    const rootPath = join(resolve(''), 'data')
+    const dirName = 'test-getFile'
+    const fileName = 'test-file777.txt'
+    const testPath = join(rootPath, dirName)
+    try {
+      const storage = new FileSystemStorage({ rootPath })
+      const content = Buffer.from('Test file content')
+      const newFilePath = await storage.writeFile([dirName, fileName].join('/'), content)
+
+      expect(typeof newFilePath).toBe('string')
+
+      const fileAfterWrite = await storage.getFile(newFilePath)
+
+      expect(fileAfterWrite.file).toEqual(content)
+    } finally {
+      await promises.rm(testPath, { recursive: true, force: true })
+    }
+  })
+})

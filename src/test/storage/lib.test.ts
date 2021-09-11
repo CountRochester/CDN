@@ -1,6 +1,6 @@
 import { join, sep } from 'path'
-import { getFilesPath } from '../../storage/lib'
-import { clearMockFiles, mockFiles } from '../test-utils/mock-files'
+import { getFilesPath } from '@/storage/lib'
+import { clearMockFiles, mockFiles } from '@t/test-utils/mock-files'
 
 describe('getFilesPath test case', () => {
   beforeEach(() => {

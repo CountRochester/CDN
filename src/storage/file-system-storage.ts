@@ -177,17 +177,18 @@ export class FileSystemStorage extends Emitter {
   async writeFile (path: string, file: Buffer): Promise<string> {
     const filePath = join(this.rootPath, path)
     const parsedFilePath = parse(filePath)
-    const dirPath = parsedFilePath.root + parsedFilePath.dir
+    const dirPath = parsedFilePath.dir
+
     await makeDir(dirPath)
     let newFileName = parsedFilePath.name + await generateRandomStringAsync(40)
-    let newFilePath = dirPath + newFileName + parsedFilePath.ext
+    let newFilePath = `${dirPath}/${newFileName}${parsedFilePath.ext}`
     try {
       await promises.access(newFilePath, constants.F_OK)
       CustomError.createAndThrow({ message: `File: ${path} already exists` })
     } catch (err) {
       if (err instanceof CustomError) {
         newFileName = parsedFilePath.name + await generateRandomStringAsync(40)
-        newFilePath = dirPath + newFileName + parsedFilePath.ext
+        newFilePath = `${dirPath}/${newFileName}${parsedFilePath.ext}`
       }
     }
     await promises.writeFile(newFilePath, file)

@@ -15,7 +15,7 @@ describe('Storage test case', () => {
   })
 
   describe('Init test case', () => {
-    test('Should init the storage propertly', async () => {
+    test('Should init the storage properly', async () => {
       const t10 = performance.now()
       const file21 = await promises.readFile('data/sub-dir/sub-sub-dir/sub-sub-sub-dir/deeply-nested-file.txt')
       const t11 = performance.now()
@@ -41,7 +41,7 @@ describe('Storage test case', () => {
       const t8 = performance.now()
       const file3 = storage.getFile('sub-dir/sub-sub-dir/very-nested-file2.txt')
       const t9 = performance.now()
-      expect(file3.toString()).toBe('this file is nested... realy')
+      expect(file3.toString()).toBe('this file is nested... really')
 
       console.log('Creating the storage in', t2 - t1, 'ms')
       console.log('Initing the storage in', t3 - t2, 'ms')
@@ -53,7 +53,7 @@ describe('Storage test case', () => {
   })
 
   describe('deleteFile test case', () => {
-    test('Should delete the file from the storage propertly', async () => {
+    test('Should delete the file from the storage properly', async () => {
       const testPath = 'sub-dir/nested.txt'
       const storage = new Storage()
       await storage.init()
