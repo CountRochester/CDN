@@ -56,11 +56,11 @@ export class Storage {
     if (this.currentSize) {
       this.clear()
     }
-    const pathes = await getFilesPath(this.rootPath)
-    const keysObj = pathes
+    const paths = await getFilesPath(this.rootPath)
+    const keysObj = paths
       .map(el => relative(this.rootPath, el))
       .map(el => el.split(sep).join('/'))
-      .map((el, index) => ({ relativePath: el, absolutePath: pathes[index] }))
+      .map((el, index) => ({ relativePath: el, absolutePath: paths[index] }))
     const fileObj = await Promise.all(keysObj.map(formFileObj))
 
     fileObj.forEach(({ file, relativePath }) => {

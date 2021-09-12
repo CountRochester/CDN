@@ -27,7 +27,7 @@ jobs:
         with:
           node-version: '14.x'
 
-      # Install the dependences
+      # Install the dependencies
       - name: Install
         run: npm install
         
@@ -39,8 +39,8 @@ jobs:
       - name: Build
         run: npm run build
         
-      # Removes dev dependences
-      - name: Removes dev dependences
+      # Removes dev dependencies
+      - name: Removes dev dependencies
         run: npm uninstall @types/jest @types/node @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint eslint-config-airbnb-base eslint-plugin-import jest ts-jest typescript
         
       # Archive production artifacts

@@ -206,8 +206,8 @@ export class FileSystemStorage extends Emitter {
   }
 
   /**
-   * @TODO remove recursive options to may run on linux
    * Starts watching the file system
+   * @TODO remove recursive options to may run on linux
    */
   watch (): void {
     if (this.watcher && this.isWatching) {
