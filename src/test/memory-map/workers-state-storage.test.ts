@@ -1,5 +1,6 @@
 /* eslint-disable max-statements */
 import { WorkersStateStorage, STATE_STORAGE_LENGTH } from '@/memory-map'
+import { types } from 'util'
 
 describe('Constructor test case', () => {
   test('should return the properly instance', () => {
@@ -193,7 +194,7 @@ describe('isWritePending test case', () => {
 })
 
 describe('export test case', () => {
-  test('should return state of writing workers', () => {
+  test('should exports the buffer', () => {
     const sharedBuffer = new SharedArrayBuffer(150)
     const buf1 = Buffer.from(sharedBuffer)
     buf1[0] = 4
@@ -226,5 +227,31 @@ describe('export test case', () => {
     expect(storage3.isWriting(4)).toBe(false)
     expect(storage3.isReading(2)).toBe(false)
     expect(storage3.isReading(3)).toBe(false)
+  })
+})
+
+describe('waitToWrite test case', () => {
+  test.only('should return state of writing workers', async () => {
+    const sharedBuffer = new SharedArrayBuffer(150)
+    const buf1 = Buffer.from(sharedBuffer)
+    buf1[0] = 4
+    buf1[1] = 3
+    const storage1 = WorkersStateStorage.fromBuffer(buf1)
+
+    const buf2 = Buffer.from(sharedBuffer)
+
+    console.log(types.isSharedArrayBuffer(sharedBuffer))
+
+    const storage2 = WorkersStateStorage.fromBuffer(buf2)
+
+    const result1 = storage1.isWritePending()
+    expect(result1).toBe(false)
+    expect(storage1.isWriting(2)).toBe(false)
+    expect(storage1.isWriting(3)).toBe(false)
+    expect(storage1.isWriting(4)).toBe(false)
+    expect(storage1.isReading(1)).toBe(false)
+    expect(storage1.isReading(2)).toBe(false)
+    expect(storage1.isReading(3)).toBe(false)
+    await storage1.waitToWrite(1)
   })
 })

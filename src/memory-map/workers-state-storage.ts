@@ -1,3 +1,10 @@
+import {
+  STATE_STORAGE_LENGTH, START_OFFSET, MAX_WRITING_WORKERS,
+  MAX_READING_WORKERS, WRITE_WAIT_INTERVAL
+} from '@/config/workers-state-storage'
+
+import { READ_WAITING_TIMEOUT } from '@/config/workers'
+
 /**
   * @param {number} writeWorkersQuantity - number of write workers (max 4)
   * (do not use more than one)
@@ -10,14 +17,12 @@ export interface WorkersStateStorageOptions {
   buffer?: Buffer
 }
 
-export const STATE_STORAGE_LENGTH = 100
-const START_OFFSET = 1
-const MAX_WRITING_WORKERS = 4
-const MAX_READING_WORKERS = 32
-
-const INVALID_WORKERS_QUANTITY = () => new Error('Invalid workers quantity')
-const INVALID_WORKER_INDEX = () => new Error('Invalid worker index')
-const INVALID_BUFFER = () => new Error('Invalid buffer length')
+const INVALID_WORKERS_QUANTITY = (): Error => new Error('Invalid workers quantity')
+export const INVALID_WORKER_INDEX = (): Error => new Error('Invalid worker index')
+const INVALID_BUFFER = (): Error => new Error('Invalid buffer length')
+const ALREADY_SET = (): Error => new Error('The value is already set')
+// eslint-disable-next-line max-len
+const WAITING_TIMEOUT = (workerIndex: number): Error => new Error(`Worker ${workerIndex}: Write waiting timeout`)
 
 /*
 0   1   2   3   4   5   6   7...         ...38
@@ -92,6 +97,9 @@ export class WorkersStateStorage {
    */
   private setStateByIndex (index: number, value: number): boolean {
     const oldValue = Atomics.exchange(this.storage, index, value)
+    if (oldValue === value) {
+      throw ALREADY_SET()
+    }
     return !!oldValue
   }
 
@@ -170,5 +178,32 @@ export class WorkersStateStorage {
    */
   export (): Buffer {
     return this.storage
+  }
+
+  /**
+   * Waits for every reading workers stops the reading
+   * @param workerIndex - index of the worker
+   */
+  async waitToWrite (workerIndex: number): Promise<void> {
+    const interval = WRITE_WAIT_INTERVAL + workerIndex
+    await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(WAITING_TIMEOUT(workerIndex))
+      }, READ_WAITING_TIMEOUT)
+
+      const watcher = setInterval(() => {
+        let stoppedReadingWorkers = 0
+        for (let i = 1; i <= this.readWorkersQuantity; i++) {
+          if (!this.isReading(i)) {
+            stoppedReadingWorkers++
+          }
+        }
+        if (stoppedReadingWorkers === this.readWorkersQuantity) {
+          clearTimeout(timeout)
+          clearInterval(watcher)
+          resolve(true)
+        }
+      }, interval)
+    })
   }
 }
