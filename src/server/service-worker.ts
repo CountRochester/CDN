@@ -139,7 +139,7 @@ export class ServiceWorker extends Worker {
    * Perform storage initialization, renews the memoryMap
    */
   private async initStorage (): Promise<void> {
-    const files = await this.fs.readAllFiles()
+    const files = await this.fs.readAllFiles() || []
     const sortedFiles = this.sortFiles(files)
     this.formBuffer(sortedFiles)
     this.memoryMap = new MemoryMap({
@@ -238,7 +238,7 @@ export class ServiceWorker extends Worker {
       const newRelativePath = await this.fs.writeFile(path, file)
       await this.update({
         file,
-        relativePath: newRelativePath
+        relativePath: newRelativePath || ''
       })
     }
 

@@ -1,9 +1,9 @@
 import { IncomingMessage } from 'http'
 import { AsyncQueue, Task } from '@/async-queue'
+import { Worker } from '@/server/worker'
 import { TaskError } from '@/error/task-error'
 import { FileSystemStorage, UploadedFileData, FileToWrite } from '@/storage/file-system-storage'
 import { extractKeyAndFiles } from './formdata-extract'
-import { Worker } from '../worker'
 
 interface UploadControllerOption {
   uploadPath: string,
