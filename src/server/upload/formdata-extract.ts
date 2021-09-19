@@ -1,28 +1,28 @@
 /*
-  начало нового блока:
+  New block starts here:
     ---------------------------- (28 -)
-    549315553513576565954746 (число 24 цифры)
+    549315553513576565954746 (number 24 digits)
     \r\n (0D 0A)
-  если ключ то:
-    Content-Disposition: form-data; name="ИМЯ_КЛЮЧА"
+  if is a key:
+    Content-Disposition: form-data; name="KEY_NAME"
     \r\n\r\n
-    ЗНАЧЕНИЕ_КЛЮЧА
-  если файл то:
-    Content-Disposition: form-data; name="ИМЯ_КЛЮЧА"; filename="ИМЯ_ФАЙЛА"
+    KEY_VALUE
+  if is a file:
+    Content-Disposition: form-data; name="KEY_NAME"; filename="FILE_NAME"
     \r\n
     Content-Type: MIME_TYPE
     \r\n\r\n
-    КОНТЕНТ
-  кодировка:
+    CONTENT
+  encoding:
 */
 
 /*
   Content-Disposition: form-data; name="token"
     \r\n\r\n
-    ЗНАЧЕНИЕ_КЛЮЧА
+    KEY_VALUE
   Content-Disposition: form-data; name="destination"
     \r\n\r\n
-    ЗНАЧЕНИЕ_КЛЮЧА
+    KEY_VALUE
 */
 
 const nameRegExp = /(?<= name=")([\s\S]+?)(?=")/gm
@@ -60,7 +60,7 @@ type FormDataFile = {
 
 const METADATA_TEST_VALUE = 'Content-Disposition: form-data;'
 
-function getChar (bufEl: number): string {
+export function getChar (bufEl: number): string {
   return String.fromCharCode(bufEl)
 }
 
@@ -68,7 +68,7 @@ function getChar (bufEl: number): string {
  * Returns the buffer from divider
  * @param buffer - buffer to search the divider
  */
-function getDividerFromBuffer (buffer: Buffer): Buffer {
+export function getDividerFromBuffer (buffer: Buffer): Buffer {
   let end = false
   const divider = []
   let i = 0
@@ -89,7 +89,7 @@ function getDividerFromBuffer (buffer: Buffer): Buffer {
  * @param buffer - to search the file content
  * @param divider - the divider of the files
  */
-function getElementIndexes (buffer: Buffer, divider: Buffer): FileIndex[] {
+export function getElementIndexes (buffer: Buffer, divider: Buffer): FileIndex[] {
   const startIndexes: number[] = []
   let j = 0
   for (let i = 0; i < buffer.length; i++) {
@@ -123,7 +123,7 @@ function getElementIndexes (buffer: Buffer, divider: Buffer): FileIndex[] {
  * @param buffer - input buffer
  * @param indexes - array of file indexes
  */
-function splitBuffer (buffer: Buffer, indexes: FileIndex[]): Buffer[] {
+export function splitBuffer (buffer: Buffer, indexes: FileIndex[]): Buffer[] {
   const output: Buffer[] = []
   indexes.forEach((el) => {
     const subBuf = buffer.slice(el.start, el.end + 1)
@@ -136,7 +136,7 @@ function splitBuffer (buffer: Buffer, indexes: FileIndex[]): Buffer[] {
  * Extract files data from the input buffer
  * @param buffer - buffer contains the files data and dividers
  */
-function formData (buffer: Buffer): Buffer[] {
+export function formData (buffer: Buffer): Buffer[] {
   const divider = getDividerFromBuffer(buffer)
   const indexes = getElementIndexes(buffer, divider)
   const filesData = splitBuffer(buffer, indexes)
@@ -148,7 +148,7 @@ function formData (buffer: Buffer): Buffer[] {
  * 'Content-Disposition: form-data;'
  * @param metadata - string, containing the metadata
  */
-function isValidData (metadata: string): boolean {
+export function isValidData (metadata: string): boolean {
   const valueToTest = metadata.slice(0, METADATA_TEST_VALUE.length)
   return valueToTest === METADATA_TEST_VALUE
 }
@@ -157,7 +157,7 @@ function isValidData (metadata: string): boolean {
  * Retrieves the metadata from the file data
  * @param elData - the element data to extract the metadata
  */
-function getMetaDataFromBuffer (elData: Buffer) {
+export function getMetaDataFromBuffer (elData: Buffer): { metadata: string, complete: boolean } {
   let end = false
   const metadata = []
   let i = 0
@@ -185,11 +185,11 @@ function getMetaDataFromBuffer (elData: Buffer) {
  * @TODO need to test!!
  * @param metadata - string representing the metadata
  */
-function parseMetadata (metadata: string): ParsedFileMetadata {
+export function parseMetadata (metadata: string): ParsedFileMetadata {
   if (!isValidData(metadata)) {
     throw new Error('Invalid data')
   }
-  metadata.slice(0, -2)
+  // metadata.slice(0, -2)  // @WTF
   const preParse = metadata.split('\r\n')
   let filename!: string | undefined
   let contentType!: string | undefined
@@ -197,7 +197,7 @@ function parseMetadata (metadata: string): ParsedFileMetadata {
   const name = parsedName !== null ? parsedName[0] : ''
   if (preParse[1]) {
     preParse[1] = preParse[1].replace('Content-Type: ', '')
-    preParse[1].slice(0, -2)
+    // preParse[1].slice(0, -2)  // @WTF
     const parsedFileName = preParse[0].match(filenameRegExp)
     filename = parsedFileName !== null ? parsedFileName[0] : undefined
     contentType = preParse[1]
@@ -215,7 +215,7 @@ function parseMetadata (metadata: string): ParsedFileMetadata {
  * @param metadata - string representing the metadata
  * @param elData - element data (file or parameter)
  */
-function getParsedElement (metadata: string, elData: Buffer): ParsedElement {
+export function getParsedElement (metadata: string, elData: Buffer): ParsedElement {
   const parsed = parseMetadata(metadata)
   const content = elData.slice(metadata.length)
   return {
@@ -228,7 +228,7 @@ function getParsedElement (metadata: string, elData: Buffer): ParsedElement {
  * Forms the element
  * @param elData - element to parse
  */
-function formElement (elData: Buffer): ParsedElement {
+export function formElement (elData: Buffer): ParsedElement {
   const { metadata } = getMetaDataFromBuffer(elData)
   return getParsedElement(metadata, elData)
 }
@@ -237,7 +237,7 @@ function formElement (elData: Buffer): ParsedElement {
  * Forms the array of parsed elements
  * @param elementsData - data of the elements to parse
  */
-function formElements (elementsData: Buffer[]): ParsedElement[] {
+export function formElements (elementsData: Buffer[]): ParsedElement[] {
   const elements: ParsedElement[] = []
   elementsData.forEach(el => {
     elements.push(formElement(el))
