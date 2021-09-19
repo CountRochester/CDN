@@ -19,6 +19,11 @@ export interface UploadedFileData extends FileObjectOutputInterface {
   isRemoved: boolean
 }
 
+export type FileToWrite = {
+  relativePath: string
+  content: Buffer
+}
+
 type EventType = 'rename' | 'change'
 
 const IS_DIR_ERROR = (): Error => new Error('The input path is a directory')

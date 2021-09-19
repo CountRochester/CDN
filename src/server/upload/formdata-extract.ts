@@ -249,7 +249,7 @@ function formElements (elementsData: Buffer[]): ParsedElement[] {
  * Extracts files and keys from raw formData
  * @param buffer - input file content
  */
-export default function extractKeyAndFiles (buffer: Buffer): {
+export function extractKeyAndFiles (buffer: Buffer): {
   keys: FormDataKey[], files: FormDataFile[]
 } {
   const filesData = formData(buffer)
