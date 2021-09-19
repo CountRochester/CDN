@@ -1,5 +1,6 @@
 import {
-  FSWatcher, promises, watch, constants, access, PathLike, readFile
+  FSWatcher, promises, watch, constants, access, PathLike, readFile,
+  createWriteStream, WriteStream
 } from 'fs'
 import { Emitter, EmitFunction } from '@/common/emitter'
 import { join, parse, relative } from 'path'
@@ -11,11 +12,20 @@ import { generateRandomStringAsync } from '@/common/helpers'
 
 export interface FileSystemStorageOptions {
   rootPath: string
+  uploadPath?: string
+}
+
+export interface UploadedFileData extends FileObjectOutputInterface {
+  isRemoved: boolean
 }
 
 type EventType = 'rename' | 'change'
 
 const IS_DIR_ERROR = (): Error => new Error('The input path is a directory')
+const NO_WRITE_STREAM = (): Error => new Error('There is no write stream initialized')
+const WRITE_EXISTS = (): Error => new Error('The write stream is already exists')
+const NO_UPLOAD_FILE_PATH = (): Error => new Error('There is no upload file path found')
+const CAN_NOT_READ_FILE = (): Error => new Error('Error reading file')
 
 export const eventHandlers = {
   /**
@@ -104,6 +114,11 @@ export async function makeDir (dirPath: PathLike): Promise<void> {
   }
 }
 
+export function destroyStream (stream: WriteStream): void {
+  stream.end()
+  stream.destroy()
+}
+
 /**
  * Describes file system storage, performing the read/write/watch
  * functions
@@ -111,33 +126,53 @@ export async function makeDir (dirPath: PathLike): Promise<void> {
 export class FileSystemStorage extends Emitter {
   rootPath: string
 
+  #writeStream: WriteStream | undefined
+
+  #uploadFilePath: string | undefined
+
   isWatching: boolean
 
   private watcher: FSWatcher|undefined
 
   constructor (options: FileSystemStorageOptions) {
     super({
-      events: ['change', 'delete', 'new', 'error'] as const
+      events: ['change', 'delete', 'new', 'error', 'completeUpload', 'startUpload'] as const
     })
     this.rootPath = options.rootPath
     this.isWatching = false
   }
 
   /**
+   * Creates any needed paths
+   */
+  async init (): Promise<void> {
+    try {
+      await makeDir(this.rootPath)
+    } catch (err) {
+      this.emit('error', err)
+    }
+  }
+
+  /**
    * Returns the object, contains the file content, relative and absolute path
    * @param path - relative path of the file
    */
-  async getFile (path: string): Promise<FileObjectOutputInterface> {
-    const filePath = join(this.rootPath, path)
-    const isPathDir = await isDir(filePath)
-    if (isPathDir) {
-      throw IS_DIR_ERROR()
-    }
-    const fileContent = await promises.readFile(filePath)
-    return {
-      file: fileContent,
-      relativePath: path,
-      absolutePath: filePath
+  async getFile (path: string): Promise<FileObjectOutputInterface|undefined> {
+    try {
+      const filePath = join(this.rootPath, path)
+      const isPathDir = await isDir(filePath)
+      if (isPathDir) {
+        throw IS_DIR_ERROR()
+      }
+      const fileContent = await promises.readFile(filePath)
+      return {
+        file: fileContent,
+        relativePath: path,
+        absolutePath: filePath
+      }
+    } catch (err) {
+      this.emit('error', err)
+      return undefined
     }
   }
 
@@ -146,16 +181,21 @@ export class FileSystemStorage extends Emitter {
    * all of the files inside the input directory and subdirectories
    * @param path - relative path of the dir
    */
-  async readDir (path: string): Promise<Array<FileObjectOutputInterface>> {
-    const relativePaths = (await getFilesPath(join(this.rootPath, path)))
-      .map(el => relative(this.rootPath, el))
+  async readDir (path: string): Promise<Array<FileObjectOutputInterface>|undefined> {
+    try {
+      const relativePaths = (await getFilesPath(join(this.rootPath, path)))
+        .map(el => relative(this.rootPath, el))
 
-    const paths = relativePaths.map(el => ({
-      relativePath: el,
-      absolutePath: join(this.rootPath, el)
-    }))
-    const fileObjs = await Promise.all(paths.map(formFileObj))
-    return fileObjs
+      const paths = relativePaths.map(el => ({
+        relativePath: el,
+        absolutePath: join(this.rootPath, el)
+      }))
+      const fileObjs = await Promise.all(paths.map(formFileObj))
+      return fileObjs
+    } catch (err) {
+      this.emit('error', err)
+      return undefined
+    }
   }
 
   /**
@@ -163,7 +203,7 @@ export class FileSystemStorage extends Emitter {
    * all of the files inside the root directory and subdirectories
    * @param path - relative path of the dir
    */
-  async readAllFiles (): Promise<Array<FileObjectOutputInterface>> {
+  async readAllFiles (): Promise<Array<FileObjectOutputInterface>|undefined> {
     const output = await this.readDir('')
     return output
   }
@@ -174,25 +214,28 @@ export class FileSystemStorage extends Emitter {
    * @param file - content of the file
    * @returns the relative path to the new file
    */
-  async writeFile (path: string, file: Buffer): Promise<string> {
-    const filePath = join(this.rootPath, path)
-    const parsedFilePath = parse(filePath)
-    const dirPath = parsedFilePath.dir
-
-    await makeDir(dirPath)
-    let newFileName = parsedFilePath.name + await generateRandomStringAsync(40)
-    let newFilePath = `${dirPath}/${newFileName}${parsedFilePath.ext}`
+  async writeFile (path: string, file: Buffer): Promise<string|undefined> {
     try {
-      await promises.access(newFilePath, constants.F_OK)
-      CustomError.createAndThrow({ message: `File: ${path} already exists` })
-    } catch (err) {
-      if (err instanceof CustomError) {
-        newFileName = parsedFilePath.name + await generateRandomStringAsync(40)
-        newFilePath = `${dirPath}/${newFileName}${parsedFilePath.ext}`
+      const parsedFilePath = parse(join(this.rootPath, path))
+      const dirPath = parsedFilePath.dir
+      await makeDir(dirPath)
+      let newFileName = parsedFilePath.name + await generateRandomStringAsync(40)
+      let newFilePath = `${dirPath}/${newFileName}${parsedFilePath.ext}`
+      try {
+        await promises.access(newFilePath, constants.F_OK)
+        CustomError.createAndThrow({ message: `File: ${path} already exists` })
+      } catch (err) {
+        if (err instanceof CustomError) {
+          newFileName = parsedFilePath.name + await generateRandomStringAsync(40)
+          newFilePath = `${dirPath}/${newFileName}${parsedFilePath.ext}`
+        }
       }
+      await promises.writeFile(newFilePath, file)
+      return relative(this.rootPath, newFilePath)
+    } catch (err) {
+      this.emit('error', err)
+      return undefined
     }
-    await promises.writeFile(newFilePath, file)
-    return relative(this.rootPath, newFilePath)
   }
 
   /**
@@ -206,35 +249,142 @@ export class FileSystemStorage extends Emitter {
   }
 
   /**
+   * Removes temp file
+   */
+  private async removeTempFile (): Promise<void> {
+    if (!this.#uploadFilePath) {
+      throw NO_UPLOAD_FILE_PATH()
+    }
+    await promises.unlink(this.#uploadFilePath)
+  }
+
+  /**
+   * Creates new write file stream
+   */
+  async initWriteStream (): Promise<void> {
+    try {
+      if (!this.rootPath) {
+        throw NO_UPLOAD_FILE_PATH()
+      }
+      if (this.#writeStream) {
+        throw WRITE_EXISTS()
+      }
+      const name = await generateRandomStringAsync(12)
+      const fileName = `${name}.tmp`
+      this.#uploadFilePath = join(this.rootPath, fileName)
+      this.#writeStream = createWriteStream(this.#uploadFilePath, { encoding: 'hex' })
+      this.emit('startUpload')
+    } catch (err) {
+      this.emit('error', err)
+    }
+  }
+
+  /**
+   * Writes data to the file stream
+   * @param chunk - chunk of data to write
+   * @param callback - error callback
+   */
+  writeStream (chunk: Buffer, callback?: (error?: Error | null) => void): void {
+    try {
+      if (!this.#writeStream) {
+        throw NO_WRITE_STREAM()
+      }
+      this.#writeStream.write(chunk, () => {
+        if (callback) {
+          callback()
+        }
+      })
+    } catch (err) {
+      if (callback && err instanceof Error) {
+        callback(err)
+      }
+      this.emit('error', err)
+    }
+  }
+
+  /**
+   * Finish writing data to file
+   * @param isRemoveTempFile - true if removes the temp file is needed
+   * @returns content of written file
+   */
+  endWriteStream (isRemoveTempFile = true): void {
+    try {
+      if (!this.#writeStream) {
+        throw NO_WRITE_STREAM()
+      }
+      if (!this.#uploadFilePath) {
+        throw NO_UPLOAD_FILE_PATH()
+      }
+      destroyStream(this.#writeStream)
+      this.#writeStream = undefined
+      this.getFile(this.#uploadFilePath)
+        .then(fileContent => {
+          if (!fileContent) {
+            throw CAN_NOT_READ_FILE()
+          }
+          if (isRemoveTempFile) {
+            this.removeTempFile().catch(err => { this.emit('error', err) })
+          }
+          this.emit('completeUpload', { ...fileContent, isRemoved: isRemoveTempFile })
+        })
+        .catch(err => {
+          this.emit('error', err)
+        })
+    } catch (err) {
+      this.emit('error', err)
+    }
+  }
+
+  /**
    * Starts watching the file system
    * @TODO remove recursive options to may run on linux
    */
   watch (): void {
-    if (this.watcher && this.isWatching) {
-      return
+    try {
+      if (this.watcher && this.isWatching) {
+        return
+      }
+      this.watcher = watch(this.rootPath, {
+        encoding: 'buffer', recursive: true
+      }, this.watchListener.bind(this))
+      this.isWatching = true
+    } catch (err) {
+      this.emit('error', err)
     }
-    this.watcher = watch(this.rootPath, {
-      encoding: 'buffer', recursive: true
-    }, this.watchListener.bind(this))
-    this.isWatching = true
   }
 
   /**
    * Stops the watching the file system
    */
   stopWatch (): void {
-    if (!this.watcher) {
-      return
+    try {
+      if (!this.watcher) {
+        return
+      }
+      this.watcher.close()
+      this.isWatching = false
+    } catch (err) {
+      this.emit('error', err)
     }
-    this.watcher.close()
-    this.isWatching = false
   }
 
   /**
-   * Clears any listeners and stops the watching the file system
+   * Clears any listeners and stops the watching the file system, immediately stops write stream
+   * and deletes the upload path
    */
-  destroy (): void {
-    this.stopWatch()
-    this.events.map(event => this.removeAllListeners(event))
+  async destroy (isNeedToClearRoot = false): Promise<void> {
+    try {
+      this.stopWatch()
+      this.events.map(event => this.removeAllListeners(event))
+      if (this.#writeStream) {
+        this.#writeStream.end()
+        this.#writeStream.destroy()
+      }
+      if (isNeedToClearRoot) {
+        await promises.rm(this.rootPath)
+      }
+    } catch (err) {
+      this.emit('error', err)
+    }
   }
 }

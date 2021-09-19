@@ -5,7 +5,7 @@ import {
   WorkersStateStorage, INVALID_WORKER_INDEX
 } from '@/memory-map'
 import { FileObjectOutputInterface } from '@/storage/lib'
-import { ServerWorker } from './worker'
+import { Worker } from './worker'
 
 interface ServiceWorkerOption {
   rootPath: string
@@ -21,7 +21,7 @@ interface UpdateOptions {
 
 const DESTROYED_ERROR = () => new Error('The ServiceWorker is destroyed')
 
-export class ServiceWorker extends ServerWorker {
+export class ServiceWorker extends Worker {
   queue: AsyncQueue<any>
 
   #sharedBuffer: SharedArrayBuffer
@@ -60,8 +60,8 @@ export class ServiceWorker extends ServerWorker {
     rootPath, capacity, stateStorage, workerIndex
   }: ServiceWorkerOption) {
     super({
-      type: 'serviceWorker',
-      events: ['start', 'stop', 'error', 'update'] as const
+      events: ['start', 'stop', 'error', 'update'] as const,
+      type: 'serviceWorker'
     })
 
     if (workerIndex <= 0 || workerIndex > MAX_WRITING_WORKERS) {
@@ -94,6 +94,7 @@ export class ServiceWorker extends ServerWorker {
   }
 
   /**
+   * @private
    * Writes the files into the sharedBuffer
    * @param files - files to write into the shared buffer
    */
@@ -111,12 +112,18 @@ export class ServiceWorker extends ServerWorker {
     this.#stateStorage.setWriting(this.#workerIndex, false)
   }
 
+  /**
+   * @private
+   * Clears the buffer. Memory map do not delete
+   * @param files - files to write into the shared buffer
+   */
   private clearBuffer (): void {
     const buffer = Buffer.from(this.#sharedBuffer)
     buffer.fill(0, STATE_STORAGE_LENGTH)
   }
 
   /**
+   * @private
    * Sorts the files
    * @TODO connect the statistic plugin for sorting
    * @param files - file objects that need to be sorted
@@ -127,6 +134,10 @@ export class ServiceWorker extends ServerWorker {
     return sortedFiles
   }
 
+  /**
+   * @private
+   * Perform storage initialization, renews the memoryMap
+   */
   private async initStorage (): Promise<void> {
     const files = await this.fs.readAllFiles()
     const sortedFiles = this.sortFiles(files)
@@ -188,7 +199,7 @@ export class ServiceWorker extends ServerWorker {
   async destroy (): Promise<void> {
     try {
       await this.queue.destroy()
-      this.fs.destroy()
+      await this.fs.destroy()
       this.clearBuffer()
       this.status = 'destroyed'
     } catch (err) {
@@ -198,6 +209,7 @@ export class ServiceWorker extends ServerWorker {
   }
 
   /**
+   * @private
    * Updates the buffer with the file if enough space or renew the buffer and the memoryMap
    */
   private async update ({ file, relativePath }: UpdateOptions): Promise<void> {

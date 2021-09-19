@@ -14,7 +14,7 @@ export abstract class Emitter extends EventEmitter {
     this.events = options.events
   }
 
-  abstract destroy(): void | Promise<void>
+  abstract destroy(...args: any[]): void | Promise<void>
 
   // eslint-disable-next-line max-len
   on (event: string|symbol, listener: (...args: any[]) => void):this {
