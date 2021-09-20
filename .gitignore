@@ -2,4 +2,7 @@ node_modules
 coverage
 bundle
 data
+upload
 .vscode
+*.pem
+.rnd

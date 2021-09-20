@@ -1,15 +1,7 @@
-import { CDNServer, CDNResponse } from './server'
+import 'module-alias/register'
+import { WriteWorker } from '@/server/write-worker'
 
-function serverHandler (route: string): Promise<CDNResponse> {
-  return new Promise(resolve => {
-    resolve({
-      code: 200,
-      payload: route
-    })
-  })
-}
-
-const server = new CDNServer({ handler: serverHandler })
+const server = new WriteWorker({ port: 2500 })
 
 server.on('error', (err) => {
   console.log('Server error')

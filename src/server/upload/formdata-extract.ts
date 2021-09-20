@@ -72,7 +72,7 @@ export function getDividerFromBuffer (buffer: Buffer): Buffer {
   let end = false
   const divider = []
   let i = 0
-  while (!end || i !== buffer.length) {
+  while (!end) {
     divider.push(getChar(buffer[i]))
     if (getChar(buffer[i]) === '\r' && getChar(buffer[i + 1]) === '\n') {
       divider.push(getChar(buffer[i + 1]))

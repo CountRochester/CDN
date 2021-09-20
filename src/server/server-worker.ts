@@ -1,6 +1,5 @@
 import { Emitter, EmitterOptions } from '@/common/emitter'
 import { Worker } from 'cluster'
-import { generateRandomString } from '@/common/helpers'
 
 export interface WorkerOptions extends EmitterOptions {
   type: string,

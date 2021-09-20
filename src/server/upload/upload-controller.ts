@@ -1,4 +1,6 @@
 import { IncomingMessage } from 'http'
+import { Http2ServerRequest } from 'http2'
+import { join } from 'path'
 import { AsyncQueue, Task } from '@/async-queue'
 import { Worker } from '@/server/worker'
 import { TaskError } from '@/error/task-error'
@@ -17,13 +19,15 @@ const TIMEOUT_ERROR = () => new Error('File upload timeout error')
 
 export function getFilesToWrite (rawContent: UploadedFileData): FileToWrite[] {
   const parsedContent = extractKeyAndFiles(rawContent.file)
+
   const output: FileToWrite[] = []
   parsedContent.files.forEach(el => {
     const key = parsedContent.keys.find(element => element.name === el.filename)
     const relativePath = key ? key.value : ''
     output.push({
-      relativePath: relativePath + el.filename,
-      content: el.value
+      relativePath: join(relativePath, el.filename),
+      content: el.value,
+      contentType: el.contentType
     })
   })
   return output
@@ -79,6 +83,7 @@ export class UploadController extends Worker {
         throw DESTROYED_ERROR()
       }
       await this.fs.init()
+      this.fs.on('error', console.log)
       this.status = 'running'
       this.emit('start')
     } catch (err) {
@@ -130,10 +135,12 @@ export class UploadController extends Worker {
    * Uploads files and returns the content of the files with relative paths
    * @param req - IncomingMessage instance
    */
-  private async uploadFiles (req: IncomingMessage): Promise<FileToWrite[]> {
+  private async uploadFiles (req: IncomingMessage | Http2ServerRequest): Promise<FileToWrite[]> {
     this.emit('uploadStarts')
     await this.fs.initWriteStream()
-    req.on('data', chunk => this.fs.writeStream(chunk))
+    req.on('data', (chunk: Buffer) => {
+      this.fs.writeStream(chunk)
+    })
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     req.on('end', () => this.fs.endWriteStream(true))
     const rawContent = await new Promise<UploadedFileData>((resolve, reject) => {
@@ -152,7 +159,7 @@ export class UploadController extends Worker {
    * Uploads files and returns the content of the files with their relative paths
    * @param req - IncomingMessage instance
    */
-  async upload (req: IncomingMessage): Promise<FileToWrite[]> {
+  async upload (req: IncomingMessage | Http2ServerRequest): Promise<FileToWrite[]> {
     const uploadTask = new Task<FileToWrite[]>({
       handler: this.uploadFiles.bind(this, req)
     })

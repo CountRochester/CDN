@@ -22,6 +22,7 @@ export interface UploadedFileData extends FileObjectOutputInterface {
 export type FileToWrite = {
   relativePath: string
   content: Buffer
+  contentType?: string
 }
 
 type EventType = 'rename' | 'change'
@@ -121,7 +122,7 @@ export async function makeDir (dirPath: PathLike): Promise<void> {
 
 export function destroyStream (stream: WriteStream): void {
   stream.end()
-  stream.destroy()
+  // stream.destroy()
 }
 
 /**
@@ -165,6 +166,7 @@ export class FileSystemStorage extends Emitter {
   async getFile (path: string): Promise<FileObjectOutputInterface|undefined> {
     try {
       const filePath = join(this.rootPath, path)
+
       const isPathDir = await isDir(filePath)
       if (isPathDir) {
         throw IS_DIR_ERROR()
@@ -320,9 +322,10 @@ export class FileSystemStorage extends Emitter {
       if (!this.#uploadFilePath) {
         throw NO_UPLOAD_FILE_PATH()
       }
-      destroyStream(this.#writeStream)
+      this.#writeStream.end()
       this.#writeStream = undefined
-      this.getFile(this.#uploadFilePath)
+      const relativePath = relative(this.rootPath, this.#uploadFilePath)
+      this.getFile(relativePath)
         .then(fileContent => {
           if (!fileContent) {
             throw CAN_NOT_READ_FILE()
@@ -336,6 +339,9 @@ export class FileSystemStorage extends Emitter {
           this.emit('error', err)
         })
     } catch (err) {
+      if (this.#writeStream) {
+        this.#writeStream.destroy()
+      }
       this.emit('error', err)
     }
   }
